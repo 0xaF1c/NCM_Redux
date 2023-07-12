@@ -1,47 +1,95 @@
+<script lang="ts" setup>
+import { reactive } from 'vue'
+import axios from 'axios'
+import store from '@/store'
+
+const getQrCodeKey = async () => {
+  return (await axios.get(`/api/login/qr/key?timerstamp=${Date.now()}`)).data.data.unikey
+}
+
+const getLoginStatus = async () => {
+  return (await axios.post(`/api/login/status?timerstamp=${Date.now()}`, {
+    cookie: store.getters.cloudMusicCookies
+  })).data.data
+}
+
+const getQrCode = async (key: string) => {
+  return (await axios.get(`/api/login/qr/create?key=${key}&qrimg=true&timerstamp=${Date.now()}`)).data
+}
+
+const pollingQrCheck = (key: string) => {
+  // axiosPolling(axios, {
+  //   retryLimit: 20
+  // })
+  // const { on, emit, off } = axios.poll({
+  //   url: `/api/login/qr/check?key=${key}&timerstamp=${Date.now()}`
+  // })
+
+  // emit()
+  // on('response', (response) => {
+  //   if (response.data.code == 803 || response.data.code == 800) {
+  //     off()
+  //     state.QrCodeState = response.data
+  //   }
+  // })
+  setInterval(async () => {
+    const result = await axios.get(`/api/login/qr/check?key=${key}&timerstamp=${Date.now()}`)
+    console.log(result);
+    
+  }, 1000)
+}
+
+const account = async () => {
+  return await axios.get('/api/user/account')
+}
+const subcount = async () => {
+  return await axios.get('/api/user/subcount')
+}
+const userPlaylist = async (uid: string) => {
+  return await axios.get(`/api/user/playlist?uid=${uid}`)
+}
+const login = async () => {
+  const loginStatus = await getLoginStatus()
+  
+  if (loginStatus.account != undefined) return loginStatus
+  
+  const unikey = await getQrCodeKey()
+  
+  const qrCode = await getQrCode(unikey)
+
+  state.QrCodeUrl = qrCode.data.qrurl
+  state.QrImg = qrCode.data.qrimg
+  pollingQrCheck(unikey)
+}
+;;(async () => {
+  const result = await login()
+  console.log(result)
+  console.log((await account()).data);
+  console.log((await subcount()).data);
+  console.log((await userPlaylist(result.account.id)).data);
+  
+  
+})()
+const state = reactive<any>({
+  QrCodeState: '',
+  QrCodeUrl: '',
+  QrImg: '',
+  avatar: ''
+})
+
+</script>
+
+
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-typescript" target="_blank" rel="noopener">typescript</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <img :src="state.QrImg" alt="">
+    <img :src="state.QrCodeState.avatarUrl" alt="">
+    <div>
+      {{ state.QrCodeState }}
+    </div>
+    <a :href="state.QrCodeUrl">{{ state.QrCodeUrl }}</a>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'HelloWorld',
-  props: {
-    msg: String,
-  },
-});
-</script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="less">
