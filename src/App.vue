@@ -1,9 +1,15 @@
+<script setup lang="ts">
+import { NLoadingBarProvider } from 'naive-ui';
+</script>
+
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <n-loading-bar-provider>
+    <nav>
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link>
+    </nav>
+    <router-view/>
+  </n-loading-bar-provider>
 </template>
 
 <style lang="less">
