@@ -35,7 +35,7 @@ const pollingQrCheck = (key: string) => {
   setInterval(async () => {
     const result = await axios.get(`/api/login/qr/check?key=${key}&timerstamp=${Date.now()}`)
     console.log(result);
-    
+
   }, 1000)
 }
 
@@ -50,25 +50,25 @@ const userPlaylist = async (uid: string) => {
 }
 const login = async () => {
   const loginStatus = await getLoginStatus()
-  
+
   if (loginStatus.account != undefined) return loginStatus
-  
+
   const unikey = await getQrCodeKey()
-  
+
   const qrCode = await getQrCode(unikey)
 
   state.QrCodeUrl = qrCode.data.qrurl
   state.QrImg = qrCode.data.qrimg
   pollingQrCheck(unikey)
 }
-;;(async () => {
+;; (async () => {
   const result = await login()
   console.log(result)
   console.log((await account()).data);
   console.log((await subcount()).data);
   console.log((await userPlaylist(result.account.id)).data);
-  
-  
+
+
 })()
 const state = reactive<any>({
   QrCodeState: '',
@@ -96,15 +96,17 @@ const state = reactive<any>({
 h3 {
   margin: 40px 0 0;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
   display: inline-block;
   margin: 0 10px;
 }
+
 a {
   color: #42b983;
-}
-</style>
+}</style>

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "backend": "cd ../NeteaseCloudMusicApi & yarn start",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build"
   },
@@ -15,6 +16,7 @@
     "vue": "^3.2.13",
     "vue-cookies": "^1.8.3",
     "vue-cookies-ts": "^1.5.19",
+    "vue-request": "^2.0.3",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"
   },
