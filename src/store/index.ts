@@ -24,7 +24,6 @@ export default createStore({
     },
     like(state, { id }) {
       like(id, true)
-      console.log(state.likelist.includes(478920445))
       state.likelist.push(id)
     },
     unlike(state, { id }) {

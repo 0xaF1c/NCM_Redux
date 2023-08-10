@@ -9,7 +9,9 @@ import {
   NAvatar,
   NThing,
   NTooltip,
-  useMessage
+  useMessage,
+  NText,
+  NTime
 } from "naive-ui"
 import {
   ReceiptPlay20Regular,
@@ -36,7 +38,7 @@ import { ref, onMounted, watch } from 'vue'
 import store from "@/store"
 import { getMusicUrl } from '@/requests/getMusicUrl'
 import { useRequest } from 'vue-request'
-import myAudio from '@/components/myAudio.vue'
+import myAudio from '@/components/myAudio/myAudio.vue'
 
 const { info } = useMessage()
 
@@ -52,18 +54,17 @@ const emits = defineEmits<{
 const progress = ref(0)
 const show = ref(false)
 const index = ref(0)
-const playMode = ref(0)
+const playMode = ref(2)
 const playModeTooltip = ref(['单曲循环', '列表循环', '播完暂停'])
-const volume = ref(1)
+const volume = ref(10)
 const muted = ref(false)
 const liked = ref(false)
 const volumeBarShow = ref(false)
 const paused = ref(true)
-const rate = ref(1)
+const darg = ref(false)
 const duration = ref(0)
-const cacheTime = ref(0)
 const loop = ref(true)
-const url = ref('')
+const url = ref('http://music.163.com/song/media/outer/url?id=317151.mp3')
 
 const musicLiked = (id: number) => store.state.likelist.includes(id)
 
@@ -80,6 +81,8 @@ const onMuted = () => {
 }
 const onMusicLike = () => {
   const _id = props.playlist[index.value]?.id
+  
+  if (_id == undefined) return
 
   if (liked.value) {
     store.commit('unlike', { id: _id })
@@ -93,11 +96,7 @@ const onPaused = () => {
   paused.value = !paused.value
 }
 const onPrevious = () => {
-  if (index.value <= 0) {
-    index.value = props.playlist.length - 1
-  } else {
-    index.value--
-  }
+  
   if (playMode.value == 2) {
     if (index.value <= 0) {
       info('到顶了（〃｀ 3′〃）')
@@ -105,25 +104,44 @@ const onPrevious = () => {
       index.value--
     }
   } else {
+    if (index.value <= 0) {
+      index.value = props.playlist.length - 1
+    } else {
+      index.value--
+    }
   }
 }
 const onNext = () => {
-  if (index.value >= props.playlist.length - 1) {
-    index.value = 0
-  } else {
-    index.value++
-  }
+  
   if (playMode.value == 2) {
+    console.log(index.value >= props.playlist.length - 1);
+    
     if (index.value >= props.playlist.length - 1) {
       info('已经到最底下了（〃｀ 3′〃）')
     } else {
       index.value++
     }
+  } else {
+    if (index.value >= props.playlist.length - 1) {
+      index.value = 0
+    } else {
+      index.value++
+    }
+  }
+}
+const onSliderMousedown = () => {
+  darg.value = true
+  window.onmouseup = () => darg.value = false
+}
+const onEnded = () => {
+  if (playMode.value != 0) {
+    onNext()
   }
 }
 
 const { run, data, loading } = useRequest(getMusicUrl, {
   onSuccess() {
+    duration.value = data.value?.data.data[0].time
     url.value = data.value?.data.data[0].url
   }
 })
@@ -132,6 +150,7 @@ onMounted(() => {
   setTimeout(() => {
     const _id = props.playlist[index.value]?.id
     liked.value = musicLiked(_id)
+    loop.value = playMode.value == 0
     run(_id)
   }, 1000);
 })
@@ -143,21 +162,25 @@ watch(
     run(_id)
   }
 )
+watch(
+  playMode,
+  () => loop.value = playMode.value == 0
+)
 
 </script>
 
 <template>
   <n-layout-footer bordered>
     <my-audio
-      v-model:url="url"
-      v-model:currentTime="progress"
-      v-model:volume="volume"
-      v-model:muted="muted"
-      v-model:paused="paused"
-      v-model:rate="rate"
-      v-model:duration="duration"
-      v-model:loop="loop"
-      v-model:cacheTime="cacheTime"
+      :url="url"
+      v-model:progress="progress"
+      :externalUpdate="darg"
+      :volume="volume"
+      :muted="muted"
+      :paused="paused"
+      :duration="duration"
+      :loop="loop"
+      @ended="onEnded"
     ></my-audio>
     <div class="container" justify="space-between" align="center">
       <div class="left">
@@ -172,8 +195,8 @@ watch(
             <span v-for="tns in props.playlist[index]?.tns">({{ tns }})</span>
           </template>
           <template #description>
-            <span v-for="artist in props.playlist[index]?.artists">
-              {{ artist.name }}
+            <span v-for="(artist, i) in props.playlist[index]?.artists">
+              {{ artist.name }} {{ i != props.playlist[index]?.artists.length-1 ? '/ ' : '' }}
             </span>
           </template>
           <template #header-extra>
@@ -213,8 +236,8 @@ watch(
               </template>
             </n-button>
           </template>
-          <n-slider vertical v-model:value="volume" :max="1" :min="0" :step="0.01" :tooltip="false"
-            :format-tooltip="num => `${Math.floor(num * 100)}%`"></n-slider>
+          <n-slider vertical v-model:value="volume" :step="0.01" :tooltip="false"
+            :format-tooltip="num => `${Math.floor(num)}%`"></n-slider>
         </n-popover>
         <n-tooltip trigger="hover">
           <template #trigger>
@@ -241,7 +264,13 @@ watch(
     </div>
     <playlistView v-model:index="index" v-model:show="show" :playlist="props.playlist"
       :playlist-title="props.playlistTitle" />
-    <n-slider class="progressSlider" v-model:value="progress" :max="1" :min="0" :step="0.0001"></n-slider>
+    <n-slider
+      class="progressSlider"
+      v-model:value="progress"
+      :step="0.001"
+      @mousedown="onSliderMousedown"
+      :format-tooltip="n => `${Math.floor((n/100*duration/1000) / 60) % 60}:${(Math.floor((n/100*duration/1000)) % 60)<10?0:''}${(Math.floor((n/100*duration/1000)) % 60)}`"
+    />
   </n-layout-footer>
 </template>
 

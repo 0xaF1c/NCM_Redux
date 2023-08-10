@@ -8,7 +8,9 @@ import {
   NTime,
   NAvatar,
   NIcon,
-  useThemeVars
+  useThemeVars,
+  NScrollbar,
+  NEmpty
 } from 'naive-ui'
 import { Speaker228Filled } from '@vicons/fluent'
 
@@ -30,7 +32,7 @@ const emits = defineEmits<{
 <template>
   <n-drawer
     :show="props.show"
-    :title="props.playlistTitle"
+    :title="props.playlistTitle == '' ? '空空如也' : props.playlistTitle"
     :show-mask="false"
     @update:show="(show) => emits('update:show', show)"
     default-width="600"
@@ -39,42 +41,50 @@ const emits = defineEmits<{
     bordered
   >
     <n-drawer-content closable :title="props.playlistTitle">
-      <n-list clickable bordered hoverable>
-        <n-list-item
-          v-for="(song, i) in props.playlist"
-          @click="emits('update:index', i)"
-          :style="props.index == i ? {
-            backgroundColor: themeVars.primaryColor,
-            color: themeVars.baseColor
-          } : ''"
-        >
-          <template #prefix>
-            <n-avatar :src="song.album.picUrl" lazy size="large"></n-avatar>
-          </template>
-
-          <div class="content">
-            <div class="name">
-              <span>{{ song.name }}</span>
-              <span class="alias" v-for="alia in song.alias">{{ alia }}</span>
-
+      <n-scrollbar v-if="props.playlist.length > 0">
+        <n-list clickable bordered hoverable>
+          <n-list-item
+            v-for="(song, i) in props.playlist"
+            @dblclick="emits('update:index', i)"
+            :style="props.index == i ? {
+              backgroundColor: themeVars.primaryColor,
+              color: themeVars.baseColor
+            } : ''"
+          >
+            <template #prefix>
+              <n-avatar :src="song.album.picUrl" lazy size="large"></n-avatar>
+            </template>
+  
+            <div class="content">
+              <div class="name">
+                <span>{{ song.name }}</span>
+                <!-- <span class="alias" v-for="alia in song.alias">({{ alia }})</span> -->
+  
+              </div>
+              <div class="artists">
+                <span v-for="(artist, i) in song.artists">
+                  {{ i > 0 && i < song.artists.length ? ' / ' : '' }}{{ artist.name }} </span>
+              </div>
+              <!-- <div class="album">
+                <span>
+                  {{ song.album.name }}
+                </span>
+              </div> -->
             </div>
-            <div class="artists">
-              <span v-for="(artist, i) in song.artists">
-                {{ i > 0 && i < song.artists.length ? ' / ' : '' }}{{ artist.name }} </span>
-            </div>
-            <div class="album">
-              <span>
-                {{ song.album.name }}
-              </span>
-            </div>
-          </div>
+  
+            <template #suffix class="suffix">
+                <n-icon v-show="props.index == i" :component="Speaker228Filled" size="18"></n-icon>
+                <n-time v-show="props.index != i" :time="song.dt" format="mm:ss" style="white-space: nowrap;"></n-time>
+            </template>
+          </n-list-item>
+        </n-list>
+      </n-scrollbar>
+      <n-empty
+        v-if="props.playlist.length == 0 || props.playlist == null || props.playlist == undefined"
+        description="这里是空的啊"
+      >
 
-          <template #suffix class="suffix">
-              <n-icon v-show="props.index == i" :component="Speaker228Filled" size="18"></n-icon>
-              <n-time v-show="props.index != i" :time="song.dt" format="mm:ss" style="white-space: nowrap;"></n-time>
-          </template>
-        </n-list-item>
-      </n-list>
+      </n-empty>
     </n-drawer-content>
   </n-drawer>
 </template>
@@ -89,42 +99,53 @@ const emits = defineEmits<{
   align-items: center;
 }
 .n-list-item {
+  user-select: none;
   .n-avatar {
     display: flex;
     align-items: center;
   }
-
   .content {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 
+      2.5fr 1fr 0.1fr
+    ;
+    grid-template-areas: 
+      "name artists dt"
+    ;
+    * {
+      user-select: none;
+    }
+  }
+  .alias {
+    font-size: 0.3rem;
   }
 
   .name,
   .artists,
   .album,
   .dt {
-    display: inline-block;
+    display: inline-flex;
     text-overflow: ellipsis;
-    white-space: nowrap;
     overflow: hidden;
+    white-space: nowrap;
+    justify-content: flex-start;
+    align-items: center;
   }
 
   .name {
-    width: 40%;
+    grid-area: name;
+    font-size: 1.01rem;
   }
 
   .artists {
-    width: 30%;
-  }
-
-  .album {
-    width: 27%;
+    grid-area: artists;
+    font-size: 0.3rem;
   }
 
   .dt {
-    width: 10%;
+    grid-area: dt;
+    font-size: 0.3rem;
   }
 }
 </style>

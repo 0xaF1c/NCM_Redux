@@ -1,4 +1,3 @@
-import { Options, useRequest } from "vue-request"
 import { http } from "@/utils/request"
 
 export const getUserStatus = () => {
