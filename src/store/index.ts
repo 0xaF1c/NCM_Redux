@@ -5,7 +5,8 @@ import { createStore } from 'vuex'
 export default createStore({
   state: {
     userStatus: JSON.parse(localStorage.getItem('userStatus')!),
-    likelist: JSON.parse(localStorage.getItem('likelist')!)
+    likelist: JSON.parse(localStorage.getItem('likelist')!),
+    playlist: JSON.parse(localStorage.getItem('playlist')!),
   },
   getters: {
     userStatus(state) { 
@@ -29,6 +30,9 @@ export default createStore({
     unlike(state, { id }) {
       like(id, false)
       state.likelist = state.likelist.filter((item: any) => item != id)
+    },
+    updatePlaylist(state, playlist) {
+      localStorage.setItem('playlist', JSON.stringify(playlist))
     }
   },
   actions: {

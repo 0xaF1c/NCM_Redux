@@ -32,12 +32,13 @@ import {
   Next24Filled,
   Previous24Filled
 } from '@vicons/fluent'
-import playlistView from './playlistView.vue'
-import { Playlist } from '@/types'
 import { ref, onMounted, watch } from 'vue'
+import { Playlist } from '@/types'
 import store from "@/store"
 import { getMusicUrl } from '@/requests/getMusicUrl'
 import { useRequest } from 'vue-request'
+
+import playlistView from './playlistView.vue'
 import myAudio from '@/components/myAudio/myAudio.vue'
 
 const { info } = useMessage()

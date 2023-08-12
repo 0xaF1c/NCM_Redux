@@ -71,10 +71,9 @@ const userId = store.getters.userStatus.profile.userId
           <header-view v-model:show="show" v-model:theme="theme"></header-view>
           <n-layout has-sider class="medium">
             <n-layout-sider bordered>
-              <menu-view></menu-view>
+              <menu-view />
             </n-layout-sider>
             <n-layout-content>
-
               <router-view />
             </n-layout-content>
           </n-layout>

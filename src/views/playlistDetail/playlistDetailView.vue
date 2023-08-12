@@ -10,24 +10,27 @@ import {
 } from 'naive-ui'
 import { useRequest } from 'vue-request'
 import { formatPlaylist } from '@/utils/formatPlaylist'
-import { Playlist } from '@/types'
+import { formatPlaylistMatadata } from '@/utils/formatPlaylistMatadata'
+import { Playlist, PlaylistMatadata } from '@/types'
 
 import playlistDetail from '@/components/playlistDetail/playlistDetail.vue'
-
-const props = defineProps<{
-  playlistId: number | string
-}>()
 
 const route = useRoute()
 const { start, finish, error } = useLoadingBar()
 
-const playlistMatadata = ref({})
-const playlist = ref<Playlist>([])
+const playlistMatadata = ref<PlaylistMatadata>()
+const playlist = ref<Playlist>()
+const props = defineProps<{
+  exportPlaylist: Playlist
+}>()
+const emits = defineEmits<{
+  (e: 'update:update:exportPlaylist', data: Playlist): void
+}>()
 
 const { run, data, loading } = useRequest(playlistTrackAll, {
   onSuccess() {
     // @ts-ignore
-    playlist.value = formatPlaylist(data?.data.songs)
+    playlist.value = formatPlaylist(data.value?.data.songs)
   }
 })
 const update = () => {
@@ -35,8 +38,7 @@ const update = () => {
   start()
   getPlaylistDetail(id)
     .then(res => {
-      playlistMatadata.value = res.data
-      console.log(res.data)
+      playlistMatadata.value = formatPlaylistMatadata(res.data)
       setTimeout(() => {
         finish()
         run(id)
@@ -58,7 +60,9 @@ watch(
 onMounted(() => {
   update()
 })
-
+const onExportPlaylistUpdate = (data: Playlist) => {
+  emits('update:update:exportPlaylist', data)
+}
 
 </script>
 
@@ -66,7 +70,7 @@ onMounted(() => {
 <template>
   <n-scrollbar>
     <n-spin :show="loading">
-      <playlist-detail />
+      <playlist-detail @update:export-playlist="onExportPlaylistUpdate" :playlist="playlist!" :playlist-matadata="playlistMatadata!" />
     </n-spin>
   </n-scrollbar>
 </template>
