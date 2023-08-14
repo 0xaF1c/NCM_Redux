@@ -2,7 +2,7 @@ import { getLikeMusic } from '@/requests/getLikeMusic'
 import { like } from '@/requests/likeMusic'
 import { createStore } from 'vuex'
 
-export default createStore({
+export default createStore<any>({
   state: {
     userStatus: JSON.parse(localStorage.getItem('userStatus')!),
     likelist: JSON.parse(localStorage.getItem('likelist')!),
@@ -14,14 +14,19 @@ export default createStore({
     },
     likelist(state) {
       return state.likelist
+    },
+    playlist(state) {
+      return state.playlist
     }
   },
   mutations: {
     updateUserStatus(state, payload) {
       localStorage.setItem('userStatus', JSON.stringify(payload))
+      state.userStatus = JSON.parse(localStorage.getItem('userStatus')!)
     },
     updateLikelist(state, payload) {
-      localStorage.setItem('likelist', JSON.stringify(payload))      
+      localStorage.setItem('likelist', JSON.stringify(payload))
+      state.likelist = JSON.parse(localStorage.getItem('likelist')!)
     },
     like(state, { id }) {
       like(id, true)
@@ -33,11 +38,12 @@ export default createStore({
     },
     updatePlaylist(state, playlist) {
       localStorage.setItem('playlist', JSON.stringify(playlist))
+      state.playlist = JSON.parse(localStorage.getItem('playlist')!)
     }
   },
   actions: {
     async updateLikelist({ commit }) {
-      const id = this.state.userStatus.profile.userId
+      const id = this.state.userStatus?.profile.userId
       const res = await getLikeMusic(id)
       
       await commit('updateLikelist', res.data.ids)

@@ -27,6 +27,8 @@ const emits = defineEmits<{
   (e: 'update:show', data: boolean): void
   (e: 'update:index', data: number): void
 }>()
+
+
 </script>
 
 <template>

@@ -12,13 +12,18 @@ import {
   NGi,
   NStatistic,
   NDataTable,
+  NIcon,
+  NTooltip,
   type DataTableColumns
 } from 'naive-ui'
-import { AddCircle24Regular } from '@vicons/fluent'
+import { AddCircle24Regular, Play24Filled, Share24Filled, Star24Regular } from '@vicons/fluent'
 import { ref, watch, onMounted, h } from 'vue'
 import { formatTimerstamp } from '@/utils/formatTimerstamp'
-import { renderIcon } from '@/utils/renderIcon';
+import { renderIcon } from '@/utils/renderIcon'
+import { useStore } from 'vuex'
 
+
+const store = useStore()
 const props = defineProps<{
   playlist: Playlist
   playlistMatadata: PlaylistMatadata
@@ -43,6 +48,7 @@ const columns: DataTableColumns<RawData> = [
       return h(
         NAvatar,
         {
+          lazy: true,
           src: rowData?.cover,
           size: 40
         }
@@ -62,6 +68,7 @@ const columns: DataTableColumns<RawData> = [
           circle: true,
           onClick() {
             exportPlaylist.value.push(rowData.songData)
+            store.commit('updatePlaylist', exportPlaylist.value)
           }
         },
         {
@@ -98,7 +105,7 @@ watch(
   <n-card :bordered="false" embedded>
     <n-page-header>
       <template #avatar>
-        <n-avatar :size="150" :src="props.playlistMatadata?.coverImgUrl" />
+        <n-avatar lazy :size="150" :src="props.playlistMatadata?.coverImgUrl" />
       </template>
       <template #title>
         <n-text style="font-size: 2rem;">
@@ -127,6 +134,40 @@ watch(
           {{ props.playlistMatadata?.description }}
         </n-text>
       </template>
+      <template #footer>
+        <n-space class="toolbox">
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button type="primary" circle @click="store.commit('updatePlaylist', props.playlist)">
+                <template #icon>
+                  <n-icon :size="25" :component="Play24Filled"></n-icon>
+                </template>
+              </n-button>
+            </template>
+            播放全部
+          </n-tooltip>
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button quaternary circle>
+                <template #icon>
+                  <n-icon :size="25" :component="Share24Filled"></n-icon>
+                </template>
+              </n-button>
+            </template>
+            分享
+          </n-tooltip>
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button quaternary circle>
+                <template #icon>
+                  <n-icon :size="25" :component="Star24Regular"></n-icon>
+                </template>
+              </n-button>
+            </template>
+            收藏
+          </n-tooltip>
+        </n-space>
+      </template>
     </n-page-header>
     <n-data-table :loading="loading" :columns="columns" :data="data" />
   </n-card>
@@ -135,5 +176,8 @@ watch(
 <style scoped lang="less">
 .n-text {
   display: inline-block;
+}
+.toolbox {
+  margin-bottom: 20px;
 }
 </style>

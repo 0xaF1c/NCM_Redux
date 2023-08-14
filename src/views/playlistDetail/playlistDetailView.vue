@@ -29,12 +29,14 @@ const emits = defineEmits<{
 
 const { run, data, loading } = useRequest(playlistTrackAll, {
   onSuccess() {
+    console.log(data)
     // @ts-ignore
     playlist.value = formatPlaylist(data.value?.data.songs)
   }
 })
 const update = () => {
-  const id: any = route.query.id
+  const id: any = window.location.hash.split('?id=')[1]
+  
   start()
   getPlaylistDetail(id)
     .then(res => {

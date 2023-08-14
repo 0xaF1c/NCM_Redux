@@ -16,8 +16,8 @@ import playerView from './views/player/playerView.vue'
 import menuView from './views/menu/menuView.vue'
 
 import { useToggleTheme } from './utils/toggleTheme'
-import { ref, reactive } from 'vue'
-import { useStore } from 'vuex'
+import { ref, reactive, watch } from 'vue'
+import { useStore, mapGetters } from 'vuex'
 import { http } from './utils/request'
 import { Song } from './types'
 
@@ -35,7 +35,14 @@ const state = reactive<{
   playlist: [],
   playlistTitle: ''
 })
-const userId = store.getters.userStatus.profile.userId
+
+watch(
+  () => store.state.playlist,
+  () => {
+    console.log(store.state.playlist)
+    state.playlist = store.state.playlist
+  }
+)
 ;;( async () => {
   // 准备数据
   // const userPlaylist = (await http.get(`/user/playlist?uid=${userId}`)).data.playlist

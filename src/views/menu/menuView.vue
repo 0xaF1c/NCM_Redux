@@ -39,6 +39,7 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
   const res = await getUserPlaylist(userId)
 
   const formatted = formatPlaylistSet(res.data.playlist)
+  
 
   const myPlaylist: any = []
   const myFavoritePlaylist: any = []
@@ -71,7 +72,19 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
 
   insert(3, {
     key: 'favorite',
-    label: '我喜欢的歌单',
+    label: () => h(
+      RouterLink,
+      {
+        to: {
+          path: '/playlistDetail',
+          name: 'playlistDetail',
+          query: {
+            id: formatted[0].id
+          }
+        },
+      },
+      { default: () => '我喜欢的音乐' }
+    ),
     icon: selectedIcon(
       () => selected.value == 'favorite',
       [Heart24Filled, Heart24Regular]

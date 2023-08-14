@@ -156,7 +156,7 @@ onMounted(() => {
   }, 1000);
 })
 watch(
-  index,
+  [index, () => props.playlist],
   () => {
     const _id = props.playlist[index.value]?.id
     liked.value = musicLiked(_id)
@@ -167,7 +167,6 @@ watch(
   playMode,
   () => loop.value = playMode.value == 0
 )
-
 </script>
 
 <template>
