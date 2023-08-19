@@ -85,8 +85,6 @@ const onScroll = (e: Event) => {
 
 <template>
   <n-scrollbar :on-scroll="onScroll">
-    <n-spin :show="loading">
       <playlist-detail @update:export-playlist="onExportPlaylistUpdate" :playlist="playlist!" :playlist-matadata="playlistMatadata!" />
-    </n-spin>
   </n-scrollbar>
 </template>

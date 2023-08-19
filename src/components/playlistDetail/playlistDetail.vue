@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Playlist, PlaylistMatadata, Song } from '@/types';
+import { Playlist, PlaylistMatadata, Song } from '@/types'
 import {
   NPageHeader,
   NAvatar,
