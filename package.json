@@ -12,6 +12,7 @@
     "axios-polling": "^1.1.1",
     "core-js": "^3.8.3",
     "naive-ui": "^2.34.4",
+    "rgbaster": "^2.1.1",
     "vfonts": "^0.0.3",
     "vue": "^3.2.13",
     "vue-cookies": "^1.8.3",

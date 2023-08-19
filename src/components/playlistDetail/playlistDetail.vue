@@ -14,6 +14,7 @@ import {
   NDataTable,
   NIcon,
   NTooltip,
+  NSpin,
   type DataTableColumns
 } from 'naive-ui'
 import { AddCircle24Regular, Play24Filled, Share24Filled, Star24Regular } from '@vicons/fluent'
@@ -21,6 +22,8 @@ import { ref, watch, onMounted, h } from 'vue'
 import { formatTimerstamp } from '@/utils/formatTimerstamp'
 import { renderIcon } from '@/utils/renderIcon'
 import { useStore } from 'vuex'
+
+import musicLikeBtn from '@/components/musicLikeBtn/musicLikeBtn.vue'
 
 
 const store = useStore()
@@ -53,11 +56,24 @@ const columns: DataTableColumns<RawData> = [
           size: 40
         }
       )
-    }
+    },
+    width: 10
   },
   { title: '标题', key: 'name' },
   { title: '作者', key: 'artists' },
   { title: '专辑', key: 'album' },
+  {
+    key: 'like',
+    render(rowData) {
+      return h(
+        musicLikeBtn,
+        {
+          id: rowData?.songData.id,
+        }
+      )
+    },
+    width: 10
+  },
   {
     key: 'play',
     render(rowData) {
@@ -131,7 +147,7 @@ watch(
       </template>
       <template #default>
         <n-text v-show="showDescription" style="font-size: 0.6rem;white-space: pre-wrap;">
-          {{ props.playlistMatadata?.description }}
+          {{ props.playlistMatadata?.description || '这个人很懒－O－ 什么也没写' }}
         </n-text>
       </template>
       <template #footer>
@@ -169,7 +185,11 @@ watch(
         </n-space>
       </template>
     </n-page-header>
-    <n-data-table :loading="loading" :columns="columns" :data="data" />
+    <n-data-table :loading="loading" :columns="columns" :data="data">
+      <template #loading>
+        <n-spin :show="loading"></n-spin>
+      </template>
+    </n-data-table>
   </n-card>
 </template>
 

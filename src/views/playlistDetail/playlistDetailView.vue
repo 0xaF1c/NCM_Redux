@@ -27,9 +27,10 @@ const emits = defineEmits<{
   (e: 'update:update:exportPlaylist', data: Playlist): void
 }>()
 
+const limit = ref(20)
+
 const { run, data, loading } = useRequest(playlistTrackAll, {
   onSuccess() {
-    console.log(data)
     // @ts-ignore
     playlist.value = formatPlaylist(data.value?.data.songs)
   }
@@ -43,7 +44,7 @@ const update = () => {
       playlistMatadata.value = formatPlaylistMatadata(res.data)
       setTimeout(() => {
         finish()
-        run(id)
+        run(id, limit.value, 0)
       })
     })
     .catch(() => {
@@ -65,12 +66,25 @@ onMounted(() => {
 const onExportPlaylistUpdate = (data: Playlist) => {
   emits('update:update:exportPlaylist', data)
 }
+const getViewport = (el: HTMLElement) => {
+  return el.scrollHeight - el.clientHeight
+}
+
+const onScroll = (e: Event) => {
+  // @ts-ignore
+  if (e.currentTarget?.scrollTop == getViewport(e.currentTarget)) {
+    if (loading.value == false) {
+      limit.value += 10
+      update()
+    }
+  }
+}
 
 </script>
 
 
 <template>
-  <n-scrollbar>
+  <n-scrollbar :on-scroll="onScroll">
     <n-spin :show="loading">
       <playlist-detail @update:export-playlist="onExportPlaylistUpdate" :playlist="playlist!" :playlist-matadata="playlistMatadata!" />
     </n-spin>

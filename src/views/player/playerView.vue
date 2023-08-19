@@ -10,8 +10,8 @@ import {
   NThing,
   NTooltip,
   useMessage,
-  NText,
-  NTime
+  NConfigProvider,
+  darkTheme
 } from "naive-ui"
 import {
   ReceiptPlay20Regular,
@@ -25,8 +25,6 @@ import {
   Speaker224Filled,
   Speaker124Filled,
   Speaker024Filled,
-  Heart24Regular,
-  Heart24Filled,
   Pause24Filled,
   Play24Filled,
   Next24Filled,
@@ -34,12 +32,13 @@ import {
 } from '@vicons/fluent'
 import { ref, onMounted, watch } from 'vue'
 import { Playlist } from '@/types'
-import store from "@/store"
 import { getMusicUrl } from '@/requests/getMusicUrl'
 import { useRequest } from 'vue-request'
 
 import playlistView from './playlistView.vue'
 import myAudio from '@/components/myAudio/myAudio.vue'
+import playerDetail from "./playerDetail.vue"
+import musicLikeBtn from '@/components/musicLikeBtn/musicLikeBtn.vue'
 
 const { info } = useMessage()
 
@@ -59,15 +58,15 @@ const playMode = ref(2)
 const playModeTooltip = ref(['单曲循环', '列表循环', '播完暂停'])
 const volume = ref(10)
 const muted = ref(false)
-const liked = ref(false)
 const volumeBarShow = ref(false)
 const paused = ref(true)
 const darg = ref(false)
 const duration = ref(0)
 const loop = ref(true)
+const playerDetailShow = ref(false)
+const toolBarDarkMode = ref(false)
 const url = ref('http://music.163.com/song/media/outer/url?id=317151.mp3')
 
-const musicLiked = (id: number) => store.state.likelist.includes(id)
 
 const onPlayModeChange = () => {
   if (playMode.value >= 2) {
@@ -79,18 +78,6 @@ const onPlayModeChange = () => {
 }
 const onMuted = () => {
 
-}
-const onMusicLike = () => {
-  const _id = props.playlist[index.value]?.id
-  
-  if (_id == undefined) return
-
-  if (liked.value) {
-    store.commit('unlike', { id: _id })
-  } else {
-    store.commit('like', { id: _id })
-  }
-  liked.value = musicLiked(_id)
 }
 
 const onPaused = () => {
@@ -150,7 +137,6 @@ onMounted(() => {
   // 这里就用笨办法了
   setTimeout(() => {
     const _id = props.playlist[index.value]?.id
-    liked.value = musicLiked(_id)
     loop.value = playMode.value == 0
     run(_id)
   }, 1000);
@@ -159,7 +145,6 @@ watch(
   [index, () => props.playlist],
   () => {
     const _id = props.playlist[index.value]?.id
-    liked.value = musicLiked(_id)
     run(_id)
   }
 )
@@ -170,7 +155,7 @@ watch(
 </script>
 
 <template>
-  <n-layout-footer bordered>
+  <n-layout-footer bordered class="player">
     <my-audio
       :url="url"
       v-model:progress="progress"
@@ -182,12 +167,19 @@ watch(
       :loop="loop"
       @ended="onEnded"
     ></my-audio>
-    <div class="container" justify="space-between" align="center">
+    <n-config-provider
+      :theme="
+        playerDetailShow ?
+          (toolBarDarkMode ? darkTheme : null) :
+        undefined
+      "
+      :class="['container', { playerDetailActive: playerDetailShow}]"
+    >
       <div class="left">
         <n-thing>
           <template #avatar>
             <n-spin :show="loading">
-              <n-avatar :size="80" :src="props.playlist[index]?.album.picUrl" />
+              <n-avatar class="cover" @click="playerDetailShow = !playerDetailShow" :size="80" :src="props.playlist[index]?.album.picUrl" />
             </n-spin>
           </template>
           <template #header>
@@ -200,12 +192,7 @@ watch(
             </span>
           </template>
           <template #header-extra>
-            <n-button circle quaternary @click="onMusicLike">
-              <template #icon>
-                <n-icon v-show="!liked" :component="Heart24Regular" />
-                <n-icon v-show="liked" :component="Heart24Filled" />
-              </template>
-            </n-button>
+            <musicLikeBtn :id="props.playlist[index]?.id" />
           </template>
         </n-thing>
       </div>
@@ -261,26 +248,51 @@ watch(
           </template>
         </n-button>
       </div>
-    </div>
+      <n-slider
+        :class="['progressSlider', { playerDetailActive: playerDetailShow}]"
+        v-model:value="progress"
+        :step="0.001"
+        @mousedown="onSliderMousedown"
+        :format-tooltip="n => `${Math.floor((n/100*duration/1000) / 60) % 60}:${(Math.floor((n/100*duration/1000)) % 60)<10?0:''}${(Math.floor((n/100*duration/1000)) % 60)}`"
+      >
+        <template #thumb>
+          <n-button v-if="playerDetailShow" text circle></n-button>
+        </template>
+      </n-slider>
+    </n-config-provider>
     <playlistView v-model:index="index" v-model:show="show" :playlist="props.playlist"
       :playlist-title="props.playlistTitle" />
-    <n-slider
-      class="progressSlider"
-      v-model:value="progress"
-      :step="0.001"
-      @mousedown="onSliderMousedown"
-      :format-tooltip="n => `${Math.floor((n/100*duration/1000) / 60) % 60}:${(Math.floor((n/100*duration/1000)) % 60)<10?0:''}${(Math.floor((n/100*duration/1000)) % 60)}`"
-    />
+    <playerDetail @update:dark-mode="v => toolBarDarkMode = v" :song="playlist[index]" v-model:show="playerDetailShow" />
   </n-layout-footer>
 </template>
 
 <style lang="less" scoped>
 @import url('@/styles/varible.less');
-
+.player {
+  width: 100%;
+}
 .progressSlider {
-  position: absolute;
-  top: -8px;
-  z-index: 100;
+  position: fixed;
+  bottom: calc(@footer-height - 8px);
+  z-index: 9999;
+  transition: bottom .5s;
+  left: 0;
+  width: 100%;
+}
+.progressSlider.playerDetailActive {
+  z-index: 9999;
+  bottom: -6.5px;
+}
+.container.playerDetailActive {
+  .left {
+    margin-left: -50%;
+  }
+
+  .middle,
+  .right,
+  .left {
+    z-index: 9998;
+  }
 }
 
 .container {
@@ -301,7 +313,9 @@ watch(
     align-items: center;
   }
 
-  .left {}
+  .left {
+    transition: margin-left .5s;
+  }
 
   .middle {
     width: 12vw;
@@ -314,5 +328,8 @@ watch(
     width: 10vw;
     height: 100%;
   }
+}
+.cover {
+  cursor: pointer;
 }
 </style>

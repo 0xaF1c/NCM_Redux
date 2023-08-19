@@ -8,7 +8,8 @@ import {
   NLayoutFooter,
   NLayoutSider,
   NSlider,
-  NMenu
+  NMenu,
+  NScrollbar
 } from 'naive-ui'
 import headerView from './views/header/headerView.vue'
 import loginView from './views/login/loginView.vue'
@@ -39,32 +40,9 @@ const state = reactive<{
 watch(
   () => store.state.playlist,
   () => {
-    console.log(store.state.playlist)
     state.playlist = store.state.playlist
   }
 )
-;;( async () => {
-  // 准备数据
-  // const userPlaylist = (await http.get(`/user/playlist?uid=${userId}`)).data.playlist
-  // const formattedPlaylists = userPlaylist.map((item: any) => ({ name: item.name, id: item.id }))
-
-  // const playlistTrackAll = (await http.get(`/playlist/track/all?id=${formattedPlaylists[0].id}`))
-  // state.playlistTitle = formattedPlaylists[0].name
-  // console.log(playlistTrackAll)
-  
-  // state.playlist = playlistTrackAll.data.songs.map((item: any): Song => {
-  //   return {
-  //     album: item.al,
-  //     alias: item.alia,
-  //     artists: item.ar,
-  //     dt: item.dt,
-  //     id: item.id,
-  //     name: item.name,
-  //     tns: item.tns,
-  //   }
-  // })
-  
-} )()
 </script>
 
 <template>
@@ -74,7 +52,7 @@ watch(
       <n-loading-bar-provider>
 
         <loginView @update:show="value => show = value" :show="show" />
-        <n-layout class="container">
+        <n-layout class="container" :scrollbar-props="{scrollable: false, containerStyle: {overflow: 'hidden'}, contentStyle: {overflow: 'hidden'}, }" native-scrollbar>
           <header-view v-model:show="show" v-model:theme="theme"></header-view>
           <n-layout has-sider class="medium">
             <n-layout-sider bordered>
@@ -94,7 +72,10 @@ watch(
 
 <style scoped lang="less">
 @import url('./styles/varible.less');
-
+* {
+  padding: 0;
+  margin: 0;
+}
 .n-config-provider {
   height: 100vh;
 }
@@ -104,7 +85,9 @@ watch(
 }
 
 .container {
+  width: 100%;
   height: 100%;
+  overflow: hidden;
 
   .medium {
     height: calc(100% - @footer-height - @header-height);
