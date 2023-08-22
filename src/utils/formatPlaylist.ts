@@ -13,3 +13,15 @@ export function formatPlaylist(playlist: any): Playlist {
     }
   })
 }
+
+export function formatFmPlaylist(playlist: any): Playlist {
+  return playlist.map((item: any): Song => ({
+    album: item.album,
+    alias: [],
+    artists: item.artists,
+    dt: item.duration,
+    id: item.id,
+    name: item.name,
+    tns: [],
+  }))
+}

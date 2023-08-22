@@ -4,6 +4,7 @@ import router from './router'
 import store from './store'
 import { setGlobalOptions } from 'vue-request'
 import { setup } from './utils/setup'
+import '@/styles/global.css'
 
 setGlobalOptions({
   manual: true

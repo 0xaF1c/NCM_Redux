@@ -21,7 +21,7 @@
           </n-carousel>
         </n-spin>
         <n-space justify="space-between" item-style="width: 49%;">
-          <n-card hoverable class="recommend">
+          <n-card hoverable class="recommend" @click="$router.push('/recommendSongs')">
             <n-thing>
               <template #avatar>
                 <n-avatar :size="150" :src="recommendSongsRef?.dailySongs[0].al.picUrl"></n-avatar>
@@ -39,7 +39,7 @@
               </template>
             </n-thing>
           </n-card>
-          <n-card hoverable class="recommend">
+          <n-card hoverable class="recommend" @click="$router.push('/recommendPlaylist')">
             <n-thing>
               <template #avatar>
                 <n-avatar :size="150" :src="recommendResourceRef?.recommend[0].picUrl"></n-avatar>

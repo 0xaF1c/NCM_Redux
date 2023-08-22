@@ -7,6 +7,8 @@ export default createStore<any>({
     userStatus: JSON.parse(localStorage.getItem('userStatus')!),
     likelist: JSON.parse(localStorage.getItem('likelist')!),
     playlist: JSON.parse(localStorage.getItem('playlist')!),
+    playlistId: null,
+    index: null,
   },
   getters: {
     userStatus(state) { 
@@ -17,6 +19,12 @@ export default createStore<any>({
     },
     playlist(state) {
       return state.playlist
+    },
+    index(state) {
+      return state.index
+    },
+    playlistId(state) {
+      return state.playlistId
     }
   },
   mutations: {
@@ -39,6 +47,12 @@ export default createStore<any>({
     updatePlaylist(state, playlist) {
       localStorage.setItem('playlist', JSON.stringify(playlist))
       state.playlist = JSON.parse(localStorage.getItem('playlist')!)
+    },
+    updateIndex(state, index) {
+      state.index = index
+    },
+    updatePlaylistId(state, id) {
+      state.playlistId = id
     }
   },
   actions: {

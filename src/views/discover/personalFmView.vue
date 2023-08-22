@@ -12,27 +12,28 @@ import {
 import { useRequest } from 'vue-request'
 import playlistDetail from '../../components/playlistDetail/playlistDetail.vue'
 
-import { recommendSongs } from '../../requests/recommendSongs'
+import { personalFm } from '../../requests/personalFm'
 
 import { reactive, ref } from 'vue'
-import { formatPlaylist } from '@/utils/formatPlaylist'
+import { formatFmPlaylist } from '@/utils/formatPlaylist'
 import { PlaylistMatadata } from '@/types'
 const playlist = ref()
 
 const matadata = reactive<PlaylistMatadata>({
   id: -1,
-  name: '每日歌曲推荐',
+  name: '私人FM',
   coverImgUrl: '',
   userId: 0,
   createTime: 0,
   playCount: 0,
   trackCount: 0,
   tags: [],
-  description: '根据你的音乐口味生成，每天6:00更新'
+  description: '私人FM'
 })
-const { data, run } = useRequest(recommendSongs, {
+const { data, run } = useRequest(personalFm, {
   onSuccess() {
-    const formatted = formatPlaylist(data.value?.data.data.dailySongs)
+    console.log(data.value?.data.data)
+    const formatted = formatFmPlaylist(data.value?.data.data)
     
     playlist.value = formatted
     matadata.coverImgUrl = formatted[0].album.picUrl

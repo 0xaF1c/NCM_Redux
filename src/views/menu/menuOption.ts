@@ -35,8 +35,8 @@ export const useMenuOptions = () => {
         RouterLink,
         {
           to: {
-            path: '/about',
-            name: 'about'
+            path: '/personalFm',
+            name: 'personalFm'
           },
         },
         { default: () => '发现' }

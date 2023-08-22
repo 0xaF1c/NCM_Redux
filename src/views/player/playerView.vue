@@ -34,11 +34,13 @@ import { ref, onMounted, watch } from 'vue'
 import { Playlist } from '@/types'
 import { getMusicUrl } from '@/requests/getMusicUrl'
 import { useRequest } from 'vue-request'
+import { useStore } from "vuex"
 
 import playlistView from './playlistView.vue'
 import myAudio from '@/components/myAudio/myAudio.vue'
 import playerDetail from "./playerDetail.vue"
 import musicLikeBtn from '@/components/musicLikeBtn/musicLikeBtn.vue'
+import artistLink from '@/components/linkBtn/artistLink.vue'
 
 const { info } = useMessage()
 
@@ -46,6 +48,8 @@ const props = defineProps<{
   playlist: Playlist
   playlistTitle: string
 }>()
+
+const store = useStore()
 
 const emits = defineEmits<{
   (e: 'update:playlist', data: Playlist): void
@@ -142,10 +146,24 @@ onMounted(() => {
   }, 1000);
 })
 watch(
-  [index, () => props.playlist],
+  () => props.playlist,
   () => {
     const _id = props.playlist[index.value]?.id
     run(_id)
+  }
+)
+watch(
+  index,
+  () => {
+    const _id = props.playlist[index.value]?.id
+    run(_id)
+    store.commit('updateIndex', index.value)
+  }
+)
+watch(
+  () => store.state.index,
+  () => {
+    index.value = store.state.index
   }
 )
 watch(
@@ -188,7 +206,9 @@ watch(
           </template>
           <template #description>
             <span v-for="(artist, i) in props.playlist[index]?.artists">
-              {{ artist.name }} {{ i != props.playlist[index]?.artists.length-1 ? '/ ' : '' }}
+              <artist-link :id="artist.id">
+                {{ artist.name }} {{ i != props.playlist[index]?.artists.length-1 ? '/ ' : '' }}
+              </artist-link>
             </span>
           </template>
           <template #header-extra>
@@ -209,7 +229,7 @@ watch(
         </n-button>
       </div>
       <div class="right">
-        <n-popover width="trigger" trigger="click" style="height: 200px; display: flex; justify-content: center;"
+        <n-popover width="trigger" trigger="click" style="height: 200px; display: flex; justify-content: center;z-index: 9999;"
           content-style="height:100%; padding: 0;" @update:show="val => volumeBarShow = val">
           <template #trigger>
             <n-button size="large" circle quaternary @click="onMuted">
@@ -260,8 +280,7 @@ watch(
         </template>
       </n-slider>
     </n-config-provider>
-    <playlistView v-model:index="index" v-model:show="show" :playlist="props.playlist"
-      :playlist-title="props.playlistTitle" />
+    <playlistView v-model:index="index" v-model:show="show" :playlist="props.playlist" :playlist-title="props.playlistTitle" />
     <playerDetail @update:dark-mode="v => toolBarDarkMode = v" :song="playlist[index]" v-model:show="playerDetailShow" />
   </n-layout-footer>
 </template>
@@ -274,13 +293,13 @@ watch(
 .progressSlider {
   position: fixed;
   bottom: calc(@footer-height - 8px);
-  z-index: 9999;
+  z-index: 1000;
   transition: bottom .5s;
   left: 0;
   width: 100%;
 }
 .progressSlider.playerDetailActive {
-  z-index: 9999;
+  z-index: 5000;
   bottom: -6.5px;
 }
 .container.playerDetailActive {

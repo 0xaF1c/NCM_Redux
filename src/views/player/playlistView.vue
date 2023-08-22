@@ -10,7 +10,7 @@ import {
   NIcon,
   useThemeVars,
   NScrollbar,
-  NEmpty
+  NEmpty,
 } from 'naive-ui'
 import { Speaker228Filled } from '@vicons/fluent'
 

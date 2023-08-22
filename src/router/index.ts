@@ -1,19 +1,20 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/home/HomeView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: () => import('../views/home/HomeView.vue')
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/history',
+    name: 'history',
+    component: () => import('../views/history/history.vue')
+  },
+  {
+    path: '/personalFm',
+    name: 'personalFm',
+    component: () => import('../views/discover/personalFmView.vue')
   },
   {
     path: '/playlistDetail',
@@ -24,6 +25,21 @@ const routes: Array<RouteRecordRaw> = [
     path: '/recommendSongs',
     name: 'recommendSongs',
     component: () => import('../views/recommend/recommendSongView.vue') 
+  },
+  {
+    path: '/recommendPlaylist',
+    name: 'recommendPlaylist',
+    component: () => import('../views/recommend/recommendPlaylistView.vue')
+  },
+  {
+    path: '/artistDetail',
+    name: 'artistDetail',
+    component: () => import('../views/artistDetail/artistDetail.vue')
+  },
+  {
+    path: '/albumDetail',
+    name: 'albumDetail',
+    component: () => import('../views/albumDetail/albumDetail.vue')
   }
 ]
 

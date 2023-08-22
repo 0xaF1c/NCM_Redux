@@ -40,7 +40,6 @@ const update = async () => {
       rgbSum += parseInt(item)
     })
     sum += rgbSum / 3
-    console.log('rgb_sum:', sum)
   }
   sum /= samp
   
