@@ -106,8 +106,6 @@ const onPrevious = () => {
 const onNext = () => {
   
   if (playMode.value == 2) {
-    console.log(index.value >= props.playlist.length - 1);
-    
     if (index.value >= props.playlist.length - 1) {
       info('已经到最底下了（〃｀ 3′〃）')
     } else {

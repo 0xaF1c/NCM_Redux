@@ -45,6 +45,7 @@ watch(
   }
 )
 onMounted(() => {
+  liked.value = musicLiked(props.id)
   setTimeout(() => {
     liked.value = musicLiked(props.id)
   }, 1000)

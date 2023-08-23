@@ -43,11 +43,23 @@ watch(
     state.playlist = store.state.playlist
   }
 )
+
+const lightThemeOverrides = {
+  common: {
+    // primaryColor: '#000000'
+  }
+}
+
+const darkThemeOverrides = {
+  common: {
+    // primaryColor: '#FFFFFF'
+  }
+}
 </script>
 
 <template>
 
-  <n-config-provider :theme="theme">
+  <n-config-provider :theme="theme" :theme-overrides="theme === null ? lightThemeOverrides : darkThemeOverrides">
     <n-message-provider>
       <n-loading-bar-provider>
 

@@ -16,7 +16,8 @@ import {
   NTooltip,
   NSpin,
   useThemeVars,
-  type DataTableColumns
+  type DataTableColumns,
+useMessage
 } from 'naive-ui'
 import { Play24Filled, Play24Regular, Share24Filled, Star24Regular } from '@vicons/fluent'
 import { ref, watch, onMounted, h } from 'vue'
@@ -41,6 +42,7 @@ const props = defineProps<{
   album?: boolean
 }>()
 const id = ref(window.location.hash.split('?id=')[1])
+const { error } = useMessage()
 
 type RawData = {
   cover: string
@@ -194,9 +196,17 @@ const rowProps = (row: RawData, rowIndex: number) => {
             playlistTrackAll(store.state.playlistId)
               .then((res) => {
                 id.value = store.state.playlistId
-                store.commit('updatePlaylist', formatPlaylist(res.data.songs))
-                
-                store.commit('updatePlaylistId', store.state.playlistId)
+                        
+                if (res.data?.songs) {
+                  store.commit('updatePlaylist', formatPlaylist(res.data?.songs))
+                  
+                  store.commit('updatePlaylistId', store.state.playlistId)
+                } else if (props.playlist.length > 0) {
+                  store.commit('updatePlaylist', props.playlist)
+                  store.commit('updatePlaylistId', store.state.playlistId)
+                } else {
+                  error('播放失败 未知错误')
+                }
               })
           }
         } else {

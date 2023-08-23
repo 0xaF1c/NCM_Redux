@@ -23,7 +23,7 @@ const progress = ref(0)
 
 const formatLyric = (lyric: any) => {
   return lyric.split('\n').map((item: string) => {
-    const time: any = item.match(/\[(.*?)\]/)?.[0] || '[00:00.00]'
+    const time: any = item.match(/\[(.*?)\]/)?.[0] || '[00:00.99]'
     const lyric = item.replace(time, '')
     return {
       time,
@@ -40,7 +40,7 @@ const lyricScrollTo = (index: number) => {
   lyricEls[index]?.classList.add('active')
   
   lyricScrollbar.value.scrollTo({
-    top: lyricEls[index]?.offsetTop - 450,
+    top: lyricEls[index]?.offsetTop - 260,
     behavior: 'smooth'
   })
 }
@@ -48,9 +48,11 @@ const lyricScrollTo = (index: number) => {
 const updateLiryc = async () => {
   const lyricRes = await lyric(props.id)
   
-  lyricObj.value = formatLyric(lyricRes.data.lrc.lyric)
-  tlyricObj.value = formatLyric(lyricRes.data.tlyric.lyric)
-  lyricScrollTo(0)
+  if(lyricRes?.data.lrc) lyricObj.value = formatLyric(lyricRes?.data.lrc.lyric)
+  if(lyricRes?.data.tlyric) tlyricObj.value = formatLyric(lyricRes?.data.tlyric.lyric)
+  lyricScrollbar.value?.scrollTo({
+    top: 0
+  })
 }
 
 watch(
@@ -69,25 +71,39 @@ watch(
     }
     const time = formatTimerstamp(props.duration * (progress.value / 100), cb)
     
-    lyricObj.value.forEach((item: any, index: number) => {
+    if (time != '[NaN:NaN.NaN]') {
       
-      if (item.time.split('.')[0] === time.split('.')[0]) {
-        lyricScrollTo(index)
-      }
-    })
+      lyricObj.value.forEach((item: any, index: number) => {
+        const lyricTime = item.time.split('.')
+        const progressTime = time.split('.')
+        if (lyricTime[0] === progressTime[0]) {
+          let progressMs = parseInt(progressTime[1].replace(']', ''))
+          let lyricMs = parseInt(lyricTime[1].replace(']', ''))
+          
+          const distance = 100
+          
+          if ((progressMs - lyricMs) < distance || (progressMs - lyricMs) > (distance - (distance*2))) {
+            lyricScrollTo(index)
+          }
+        }
+      })
+    }
   }
 )
 updateLiryc()
 </script>
 
 <template>
-  <n-scrollbar ref="lyricScrollbar" style="max-height: 70vh; width: 500px; margin-top: -120px;">
+  <n-scrollbar v-if="lyricObj?.length > 0" ref="lyricScrollbar" style="max-height: 70vh; width: 500px; margin-top: -120px;">
     <div class="lyricContainer">
       <div class="placeholder"></div>
       <div v-for="(item, i) in lyricObj" class="lyricRow" :name="item.time">
         <div class="lrc">{{ item.lyric }}</div>
-        <div v-if="tlyricObj.length > 0" class="tlrc">{{ tlyricObj[i]?.lyric }}</div>
+        <div v-if="tlyricObj.length > 0" class="tlrc" v-for="tlyric in tlyricObj">
+          {{ tlyric.time == item.time ? tlyric.lyric : '' }}
+        </div>
       </div>
+      <div class="placeholder"></div>
     </div>
   </n-scrollbar>
 </template>
@@ -96,7 +112,7 @@ updateLiryc()
 .lyricContainer {
   width: 100%;
   .placeholder {
-    height: 450px;
+    height: 260px;
   }
   .lyricRow {
     font-size: 1.3rem;

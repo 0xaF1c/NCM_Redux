@@ -82,13 +82,13 @@ watch(
             </n-text>
             <n-text class="artist">
               <span v-for="artist in props.song.artists">
-                <ArtistLink :id="artist.id">
+                <ArtistLink :id="artist.id" @click="emits('update:show', false)">
                   {{ artist.name }}
                 </ArtistLink>
               </span>
             </n-text>
             <n-text class="album">
-              <AlbumLink :id="props.song.album.id">
+              <AlbumLink :id="props.song.album.id" @click="emits('update:show', false)">
                 {{ props.song?.album.name }}
               </AlbumLink>
             </n-text>
