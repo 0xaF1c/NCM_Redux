@@ -31,7 +31,7 @@ const emits = defineEmits<{
 
 const update = async () => {
   const result = await analyze(props.song?.album.picUrl, { scale: 0.3 })
-  const samp = 35
+  const samp = result.length < 35 ? result.length - 1 : 35
   let sum = 0
 
   // 取样前十种颜色
@@ -49,9 +49,9 @@ const update = async () => {
   sum /= samp
   
   darkMode.value = sum < 255 * 0.6
+  
   emits('update:darkMode', darkMode.value)
 }
-
 watch(
   () => props.song,
   () => {
@@ -85,6 +85,7 @@ watch(
                 <ArtistLink :id="artist.id" @click="emits('update:show', false)">
                   {{ artist.name }}
                 </ArtistLink>
+                &nbsp;
               </span>
             </n-text>
             <n-text class="album">

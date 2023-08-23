@@ -25,7 +25,7 @@ const matadata = reactive<PlaylistMatadata>({
   userId: 0,
   createTime: 0,
   playCount: 0,
-  trackCount: 0,
+  trackCount: -1,
   tags: [],
   description: ''
 })

@@ -44,7 +44,7 @@ run()
           每日推荐
         </n-breadcrumb-item>
       </n-breadcrumb>
-      <playlistViewer :playlist-set="playlistSet" />
+      <playlistViewer style="margin-top: 20px;" :playlist-set="playlistSet" />
     </n-card>
   </n-scrollbar>
 </template>

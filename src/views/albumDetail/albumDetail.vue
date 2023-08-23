@@ -5,8 +5,10 @@ import { album } from '@/requests/album'
 import { Playlist, PlaylistMatadata } from '@/types'
 import { formatPlaylist } from '@/utils/formatPlaylist'
 import { useRequest } from 'vue-request'
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 const playlistMatadata: PlaylistMatadata = reactive({
   coverImgUrl: '',
   createTime: 0,
@@ -24,9 +26,7 @@ const playlist = ref<Playlist>()
 const { data, run } = useRequest(album, {
   onSuccess() {
     const formatted = formatPlaylist(data.value?.data.songs)    
-    const album = data.value?.data.album    
-    console.log(album);
-    
+    const album = data.value?.data.album        
     
     playlist.value = formatted
     playlistMatadata.coverImgUrl = album.picUrl
@@ -40,6 +40,12 @@ run(id)
 const onPlayButtonClick = () => {
   
 }
+watch(
+  () => route.query,
+  () => {
+    run(route.query.id)
+  }
+)
 </script>
 
 <template>

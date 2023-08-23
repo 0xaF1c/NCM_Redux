@@ -25,3 +25,15 @@ export function formatFmPlaylist(playlist: any): Playlist {
     tns: [],
   }))
 }
+
+// export function formatSearchResult(result: any): Playlist {
+//   return result.map((item: any): Song => ({
+//     album: item.album
+//     alias
+//     artists
+//     dt
+//     id
+//     name
+//     tns
+//   }))
+// }

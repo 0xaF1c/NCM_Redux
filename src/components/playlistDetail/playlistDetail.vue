@@ -30,6 +30,7 @@ import albumLink from '@/components/linkBtn/albumLink.vue'
 import artistLink from '@/components/linkBtn/artistLink.vue'
 import { formatPlaylist } from '@/utils/formatPlaylist'
 import { playlistTrackAll } from '@/requests/playlistTrackAll'
+import { useRoute } from 'vue-router'
 
 
 const store = useStore()
@@ -41,6 +42,7 @@ const props = defineProps<{
   playlistMatadata: PlaylistMatadata
   album?: boolean
 }>()
+const route = useRoute()
 const id = ref(window.location.hash.split('?id=')[1])
 const { error } = useMessage()
 
@@ -184,8 +186,7 @@ const rowProps = (row: RawData, rowIndex: number) => {
   `
   const options: any = {
     ondblclick: () => {
-      
-      if (id != store.state.playlistId) {
+      if (id.value != store.state.playlistId) {
         if (props.playlistMatadata.id != -1) {
           if (props.album) {
 
@@ -214,6 +215,9 @@ const rowProps = (row: RawData, rowIndex: number) => {
           store.commit('updatePlaylistId', undefined)
         }
       }
+      setTimeout(() => {
+        store.commit('updatePaused', false)
+      }, 400);
       store.commit('updateIndex', row.index)
     },
     style: ''
@@ -248,7 +252,7 @@ watch(
         <n-space>
           <n-tag :bordered="false" v-for="tag in props.playlistMatadata?.tags">{{ tag }}</n-tag>
         </n-space>
-        <n-grid :cols="3">
+        <n-grid v-if="props.playlistMatadata?.trackCount != -1" :cols="3">
           <n-gi>
             <n-statistic label="歌曲数" :value="props.playlistMatadata?.trackCount" />
           </n-gi>
@@ -256,7 +260,7 @@ watch(
             <n-statistic label="播放数" :value="props.playlistMatadata?.playCount" />
           </n-gi>
         </n-grid>
-        <n-space align="center" style="margin: 10px 0;">
+        <n-space align="center" style="margin: 10px 0;" v-if="props.playlistMatadata?.trackCount != -1">
           描述:
           <n-button quaternary circle @click="showDescription = !showDescription">
             {{ showDescription ? '👆' : '👇' }}

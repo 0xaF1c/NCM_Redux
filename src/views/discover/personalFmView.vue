@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import {
-  NScrollbar,
-  NBreadcrumb,
-  NBreadcrumbItem,
-  NIcon
+  NScrollbar
 } from 'naive-ui'
-import { 
-  Home24Filled,
-  MusicNote124Filled
-} from '@vicons/fluent'
 import { useRequest } from 'vue-request'
 import playlistDetail from '../../components/playlistDetail/playlistDetail.vue'
 
@@ -32,7 +25,6 @@ const matadata = reactive<PlaylistMatadata>({
 })
 const { data, run } = useRequest(personalFm, {
   onSuccess() {
-    console.log(data.value?.data.data)
     const formatted = formatFmPlaylist(data.value?.data.data)
     
     playlist.value = formatted
@@ -46,18 +38,6 @@ run()
 <template>
   <n-scrollbar>
     <playlist-detail :playlist="playlist" :playlist-matadata="matadata">
-      <template #header>
-        <n-breadcrumb>
-          <n-breadcrumb-item href="/#/">
-            <n-icon :component="Home24Filled"></n-icon>
-            首页
-          </n-breadcrumb-item>
-          <n-breadcrumb-item>
-            <n-icon :component="MusicNote124Filled"></n-icon>
-            每日推荐
-          </n-breadcrumb-item>
-        </n-breadcrumb>
-      </template>
     </playlist-detail>
   </n-scrollbar>
 </template>

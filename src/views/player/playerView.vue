@@ -171,6 +171,12 @@ watch(
   }
 )
 watch(
+  () => store.state.paused,
+  () => {
+    paused.value = store.state.paused
+  }
+)
+watch(
   playMode,
   () => loop.value = playMode.value == 0
 )

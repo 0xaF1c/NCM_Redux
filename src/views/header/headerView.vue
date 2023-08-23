@@ -13,13 +13,14 @@ import {
   useLoadingBar,
   useMessage
 } from 'naive-ui'
+import searchView from './searchView.vue'
 
 import { useToggleTheme } from '../../utils/toggleTheme'
-import { WeatherMoon16Filled, WeatherSunny16Filled } from '@vicons/fluent';
+import { WeatherMoon16Filled, WeatherSunny16Filled } from '@vicons/fluent'
 import { reactive } from 'vue'
-import { useRequest } from 'vue-request';
-import { getUserStatus } from '@/requests/getUserStatus';
-import { useStore } from 'vuex';
+import { useRequest } from 'vue-request'
+import { getUserStatus } from '@/requests/getUserStatus'
+import { useStore } from 'vuex'
 
 const store = useStore()
 
@@ -88,7 +89,7 @@ if (store.getters.userStatus?.profile == null) {
     <n-text>
       Logo
     </n-text>
-    <n-input placeholder="search" />
+    <searchView />
 
     <n-space align="center" justify="space-between">
       <n-switch v-model:value="currentThemeBool" @click="onThemeToggle" size="large">

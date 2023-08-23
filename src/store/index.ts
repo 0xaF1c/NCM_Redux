@@ -10,6 +10,7 @@ export default createStore<any>({
     playlistId: null,
     index: null,
     progress: 0,
+    paused: true,
   },
   getters: {
     userStatus(state) { 
@@ -29,6 +30,9 @@ export default createStore<any>({
     },
     progress(state) {
       return state.progress
+    },
+    paused(state) {
+      return state.paused
     }
   },
   mutations: {
@@ -63,6 +67,9 @@ export default createStore<any>({
     },
     updateProgress(state, progress) {
       state.progress = progress
+    },
+    updatePaused(state, paused) {
+      state.paused = paused
     }
   },
   actions: {

@@ -21,14 +21,14 @@ const playlist = ref()
 
 const matadata = reactive<PlaylistMatadata>({
   id: -1,
-  name: '每日歌曲推荐',
+  name: '每日歌曲推荐 - 根据你的音乐口味生成，每天6:00更新',
   coverImgUrl: '',
   userId: 0,
   createTime: 0,
-  playCount: 0,
-  trackCount: 0,
+  playCount: -1,
+  trackCount: -1,
   tags: [],
-  description: '根据你的音乐口味生成，每天6:00更新'
+  description: ''
 })
 const { data, run } = useRequest(recommendSongs, {
   onSuccess() {
