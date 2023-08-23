@@ -2,7 +2,8 @@
 export type FormatTimerstampCallback = (
   h: number,
   m: number,
-  s: number
+  s: number,
+  ms: number
 ) => string
 
 export function formatTimerstamp(t: number, cb: FormatTimerstampCallback | null) {
@@ -13,7 +14,7 @@ export function formatTimerstamp(t: number, cb: FormatTimerstampCallback | null)
 
 
   if (cb != null) {
-    return cb(h, m, s)
+    return cb(h, m, s, date.getMilliseconds())
   } else {
     return `${h}:${m}:${s}`
   }

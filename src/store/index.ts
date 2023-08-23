@@ -9,6 +9,7 @@ export default createStore<any>({
     playlist: JSON.parse(localStorage.getItem('playlist')!),
     playlistId: null,
     index: null,
+    progress: 0,
   },
   getters: {
     userStatus(state) { 
@@ -25,9 +26,15 @@ export default createStore<any>({
     },
     playlistId(state) {
       return state.playlistId
+    },
+    progress(state) {
+      return state.progress
     }
   },
   mutations: {
+    updateCookies(state, payload) {
+      document.cookie = payload
+    },
     updateUserStatus(state, payload) {
       localStorage.setItem('userStatus', JSON.stringify(payload))
       state.userStatus = JSON.parse(localStorage.getItem('userStatus')!)
@@ -53,6 +60,9 @@ export default createStore<any>({
     },
     updatePlaylistId(state, id) {
       state.playlistId = id
+    },
+    updateProgress(state, progress) {
+      state.progress = progress
     }
   },
   actions: {

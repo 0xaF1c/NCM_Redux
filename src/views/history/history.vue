@@ -30,9 +30,10 @@ const matadata = reactive<PlaylistMatadata>({
   description: ''
 })
 const { data, run } = useRequest(recordRecentSong, {
-  onSuccess() {    
-    const formatted = formatPlaylist(data.value?.data.data.list.map(item => item.data))
+  onSuccess() {
     
+    const formatted = formatPlaylist(data.value?.data.data.list.map(item => item.data))
+        
     playlist.value = formatted
     matadata.coverImgUrl = formatted[0].album.picUrl
   }

@@ -4,9 +4,10 @@ import { reactive } from 'vue'
 import { useRequest } from 'vue-request'
 import { http } from '../../utils/request'
 import { useMessage } from 'naive-ui'
+import { useStore } from 'vuex'
 
 const message = useMessage()
-
+const store = useStore()
 // 获取二维码授权码
 const getQrCodeKey = async () => {
   return (await http.get(`/login/qr/key?timerstamp=${Date.now()}`)).data.data.unikey
@@ -50,6 +51,8 @@ const pollingQrCheckRequest = useRequest(pollingQrCheck, {
     if (res.data.code == 803) {
       message.success('登录成功')
       pollingQrCheckRequest.cancel()
+      store.commit('updateCookies', res.data)
+      
       state.userAvatar = res.data.avatarUrl
       state.userNickname = res.data.nickname
       state.loginSuccess = true

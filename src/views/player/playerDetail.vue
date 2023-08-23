@@ -8,10 +8,15 @@ import {
   NConfigProvider,
   darkTheme
 } from 'naive-ui'
+
+import lyricRender from './lyricRender.vue'
+
 // @ts-ignore
 import analyze from 'rgbaster'
 import { watch, ref } from 'vue'
 import { Song } from '@/types';
+import AlbumLink from '@/components/linkBtn/albumLink.vue';
+import ArtistLink from '@/components/linkBtn/artistLink.vue';
 
 const darkMode = ref(false)
 const props = defineProps<{
@@ -61,23 +66,34 @@ watch(
     <n-drawer close-on-esc :show="props.show" @update:show="v => emits('update:show', v)" placement="bottom" height="100%">
       <n-drawer-content class="container" closable header-style="border: none;z-index: 2;">
         <div class="shader" :style="{backgroundImage: `url(${props.song?.album.picUrl})`}"></div>
-        <n-space class="content" vertical justify="center" align="center">
-          <n-avatar :src="props.song?.album.picUrl" :size="500"></n-avatar>
-          <n-text class="name">
-            {{ props.song?.name }}
-          </n-text>
-          <n-text class="tns">
-            <span v-for="tn in props.song?.tns">
-              {{ tn }}
-            </span>
-  
-            <span v-for="alia in props.song?.alias">
-              {{ alia }}
-            </span>
-          </n-text>
-          <n-text class="album">
-            {{ props.song?.album.name }}
-          </n-text>
+        <n-space class="content" justify="space-evenly" align="center" :wrap="false">
+          <n-space vertical justify="center" align="center">
+            <n-avatar :src="props.song?.album.picUrl" :size="500"></n-avatar>
+            <n-text class="name">
+              {{ props.song?.name }}
+            </n-text>
+            <n-text class="tns">
+              <span v-for="tn in props.song?.tns">
+                {{ tn }}
+              </span>
+              <span v-for="alia in props.song?.alias">
+                {{ alia }}
+              </span>
+            </n-text>
+            <n-text class="artist">
+              <span v-for="artist in props.song.artists">
+                <ArtistLink :id="artist.id">
+                  {{ artist.name }}
+                </ArtistLink>
+              </span>
+            </n-text>
+            <n-text class="album">
+              <AlbumLink :id="props.song.album.id">
+                {{ props.song?.album.name }}
+              </AlbumLink>
+            </n-text>
+          </n-space>
+          <lyricRender class="lyricRender" :id="props.song.id" :duration="props.song.dt" />
         </n-space>
       </n-drawer-content>
     </n-drawer>
@@ -107,5 +123,6 @@ watch(
 .content {
   position: relative;
   z-index: 2;
+  height: 100%;
 }
 </style>

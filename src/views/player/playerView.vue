@@ -161,6 +161,12 @@ watch(
   }
 )
 watch(
+  progress,
+  () => {
+    store.commit('updateProgress', progress.value)
+  }
+)
+watch(
   () => store.state.index,
   () => {
     index.value = store.state.index
