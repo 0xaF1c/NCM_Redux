@@ -7,7 +7,8 @@ import {
   NTag,
   NAvatar,
   NCard,
-  NDivider
+  NDivider,
+  NScrollbar
 } from 'naive-ui'
 import { artistAlbum } from '@/requests/artistAlbum'
 import { artistDetail } from '@/requests/artistDetail'
@@ -36,35 +37,37 @@ artistAlbumReq?.run(id)
 </script>
 
 <template>
-  <n-card>
-    <n-spin :show="loading">
-      <n-page-header>
-        <template #avatar>
-          <n-avatar lazy :size="150" :src="data?.data.data.artist.avatar" />
-        </template>
-        <template #title>
-          <n-text style="font-size: 2rem;">
-            {{ data?.data.data.artist.name }}
-          </n-text>
-          <n-space>
-            <n-tag :bordered="false" v-for="tag in data?.data.data.artist.identities">{{ tag }}</n-tag>
-            <n-tag :bordered="false" v-for="tag in data?.data.data.artist.identifyTag">{{ tag }}</n-tag>
-          </n-space>
-          <n-space align="center" style="margin: 10px 0;">
-            描述:
-            <n-button quaternary circle @click="showDescription = !showDescription">
-              {{ showDescription ? '👆' : '👇' }}
-            </n-button>
-          </n-space>
-        </template>
-        <template #default>
-          <n-text v-show="showDescription" style="font-size: 0.6rem;white-space: pre-wrap;">
-            {{ data?.data.data.artist.briefDesc || '这个人很懒－O－ 什么也没写' }}
-          </n-text>
-        </template>
-      </n-page-header>
-      <n-divider title-placement="left">专辑</n-divider>
-      <albumViewer :albums="albums"></albumViewer>
-    </n-spin>
-  </n-card>
+  <n-scrollbar>
+    <n-card>
+      <n-spin :show="loading">
+        <n-page-header>
+          <template #avatar>
+            <n-avatar lazy :size="150" :src="data?.data.data.artist.avatar" />
+          </template>
+          <template #title>
+            <n-text style="font-size: 2rem;">
+              {{ data?.data.data.artist.name }}
+            </n-text>
+            <n-space>
+              <n-tag :bordered="false" v-for="tag in data?.data.data.artist.identities">{{ tag }}</n-tag>
+              <n-tag :bordered="false" v-for="tag in data?.data.data.artist.identifyTag">{{ tag }}</n-tag>
+            </n-space>
+            <n-space align="center" style="margin: 10px 0;">
+              描述:
+              <n-button quaternary circle @click="showDescription = !showDescription">
+                {{ showDescription ? '👆' : '👇' }}
+              </n-button>
+            </n-space>
+          </template>
+          <template #default>
+            <n-text v-show="showDescription" style="font-size: 0.6rem;white-space: pre-wrap;">
+              {{ data?.data.data.artist.briefDesc || '这个人很懒－O－ 什么也没写' }}
+            </n-text>
+          </template>
+        </n-page-header>
+        <n-divider title-placement="left">专辑</n-divider>
+        <albumViewer :albums="albums"></albumViewer>
+      </n-spin>
+    </n-card>
+  </n-scrollbar>
 </template>

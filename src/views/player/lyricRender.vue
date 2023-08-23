@@ -23,7 +23,7 @@ const progress = ref(0)
 
 const formatLyric = (lyric: any) => {
   return lyric.split('\n').map((item: string) => {
-    const time: any = item.match(/\[(.*?)\]/)?.[0] || '[00:00.99]'
+    const time: any = item.match(/\[(.*?)\]/)?.[0] || '[99:99.99]'
     const lyric = item.replace(time, '')
     return {
       time,
