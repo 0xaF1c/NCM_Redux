@@ -51,7 +51,6 @@ const pollingQrCheckRequest = useRequest(pollingQrCheck, {
     if (res.data.code == 803) {
       message.success('登录成功')
       pollingQrCheckRequest.cancel()
-      store.commit('updateCookies', res.data)
       
       state.userAvatar = res.data.avatarUrl
       state.userNickname = res.data.nickname

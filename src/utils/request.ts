@@ -1,11 +1,9 @@
 import axios, { AxiosError } from 'axios'
 
 const http = axios.create({
-  baseURL: '/api',
-  // baseURL: 'https://netease-cloud-music-redux-api.vercel.app/',
-  // baseURL: 'http://localhost:3000',
+  baseURL: 'http://localhost:3000/',
   timeout: 60000,
-  withCredentials: false
+  withCredentials: true,
 })
 
 /**

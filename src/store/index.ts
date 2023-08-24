@@ -38,6 +38,8 @@ export default createStore<any>({
   mutations: {
     updateCookies(state, payload) {
       document.cookie = payload
+      console.log(document.cookie);
+      
     },
     updateUserStatus(state, payload) {
       localStorage.setItem('userStatus', JSON.stringify(payload))
