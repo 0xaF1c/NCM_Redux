@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios'
 
 const http = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL: 'http://127.0.0.1:3000/',
   timeout: 60000,
   withCredentials: true,
 })
