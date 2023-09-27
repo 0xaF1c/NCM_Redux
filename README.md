@@ -29,7 +29,7 @@ yarn && yarn serve
 npm install && npm run serve
 ```
 
-### backend
+### backend installing
 ```shell
 git clone https://github.com/Binaryify/NeteaseCloudMusicApi
 
