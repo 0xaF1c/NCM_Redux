@@ -15,8 +15,8 @@ import playlistDetail from '../../components/playlistDetail/playlistDetail.vue'
 import { recommendSongs } from '../../requests/recommendSongs'
 
 import { reactive, ref } from 'vue'
-import { formatPlaylist } from '@/utils/formatPlaylist'
-import { PlaylistMatadata } from '@/types'
+import { formatPlaylist } from '../../utils/formatPlaylist'
+import { PlaylistMatadata } from '../../types'
 const playlist = ref()
 
 const matadata = reactive<PlaylistMatadata>({
@@ -34,17 +34,33 @@ const { data, run } = useRequest(recommendSongs, {
   onSuccess() {
     const formatted = formatPlaylist(data.value?.data.data.dailySongs)
     
+    renderPlaylist.value = formatted.slice(0, limit.value)
+    
     playlist.value = formatted
     matadata.coverImgUrl = formatted[0].album.picUrl
   }
 })
 
+
+const renderPlaylist = ref()
+const limit = ref(20)
+const getViewport = (el: HTMLElement) => {
+  return el.scrollHeight - el.clientHeight
+}
+const onScroll = (e: Event) => {
+  if (e.currentTarget?.scrollTop == getViewport(e.currentTarget)) {
+    if (loading.value == false) {
+      limit.value += 10
+      renderPlaylist.value = playlist.value.slice(0, limit.value)
+    }
+  }
+}
 run()
 </script>
 
 <template>
   <n-scrollbar>
-    <playlist-detail :playlist="playlist" :playlist-matadata="matadata">
+    <playlist-detail :all-playlist="playlist!" :render-playlist="renderPlaylist!" :playlist-matadata="matadata">
       <template #header>
         <n-breadcrumb>
           <n-breadcrumb-item href="/#/">

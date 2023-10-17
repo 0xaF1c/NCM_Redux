@@ -1,4 +1,4 @@
-import { http } from "@/utils/request"
+import { http } from "../utils/request"
 
 export const searchSuggest = (keywords: string) => {
   return http.get('/search/suggest', {

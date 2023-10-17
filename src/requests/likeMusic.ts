@@ -1,4 +1,4 @@
-import { http } from "@/utils/request"
+import { http } from "../utils/request"
 
 export const like = (id: string | number, like: boolean) => {
   return http.get('/like', {

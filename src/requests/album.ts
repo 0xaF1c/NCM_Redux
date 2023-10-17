@@ -1,4 +1,4 @@
-import { http } from "@/utils/request"
+import { http } from "../utils/request"
 
 export const album = (id: string | number) => {
   return http.get('/album', {

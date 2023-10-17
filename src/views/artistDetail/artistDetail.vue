@@ -10,13 +10,15 @@ import {
   NDivider,
   NScrollbar
 } from 'naive-ui'
-import { artistAlbum } from '@/requests/artistAlbum'
-import { artistDetail } from '@/requests/artistDetail'
+import { artistAlbum } from '../../requests/artistAlbum'
+import { artistDetail } from '../../requests/artistDetail'
 import { useRequest } from 'vue-request'
-import { ref } from 'vue'
-import { formatPlaylistSetWithAlbum } from '@/utils/formatPlaylistSet'
-import albumViewer from '@/components/playlistViewer/albumViewer.vue'
+import { ref, watch } from 'vue'
+import { formatPlaylistSetWithAlbum } from '../../utils/formatPlaylistSet'
+import albumViewer from '../../components/playlistViewer/albumViewer.vue'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 const showDescription = ref(false)
 const id = window.location.hash.split('?id=')[1]
 const artist = ref()
@@ -34,6 +36,13 @@ const artistAlbumReq = useRequest(artistAlbum, {
 run(id)
 artistAlbumReq?.run(id)
 
+watch(
+  () => route.query,
+  () => {
+    run(Number(route.query.id))
+    artistAlbumReq?.run(Number(route.query.id))
+  }
+)
 </script>
 
 <template>

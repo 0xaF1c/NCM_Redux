@@ -1,5 +1,5 @@
 
-import { renderIcon } from '@/utils/renderIcon'
+import { renderIcon } from '../../utils/renderIcon'
 import { type MenuOption } from 'naive-ui'
 import { h, reactive } from 'vue'
 

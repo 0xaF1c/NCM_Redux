@@ -8,8 +8,8 @@ import playlistDetail from '../../components/playlistDetail/playlistDetail.vue'
 import { personalFm } from '../../requests/personalFm'
 
 import { reactive, ref } from 'vue'
-import { formatFmPlaylist } from '@/utils/formatPlaylist'
-import { PlaylistMatadata } from '@/types'
+import { formatFmPlaylist } from '../../utils/formatPlaylist'
+import { PlaylistMatadata } from '../../types'
 const playlist = ref()
 
 const matadata = reactive<PlaylistMatadata>({
@@ -27,17 +27,31 @@ const { data, run } = useRequest(personalFm, {
   onSuccess() {
     const formatted = formatFmPlaylist(data.value?.data.data)
     
-    playlist.value = formatted
+    
     matadata.coverImgUrl = formatted[0].album.picUrl
+    renderPlaylist.value = formatted.slice(0, limit.value)
+    playlist.value = formatted
   }
 })
+
+const renderPlaylist = ref()
+const limit = ref(20)
+const getViewport = (el: HTMLElement) => {
+  return el.scrollHeight - el.clientHeight
+}
+const onScroll = (e: Event) => {
+  if (e.currentTarget?.scrollTop == getViewport(e.currentTarget)) {
+    limit.value += 10
+    renderPlaylist.value = playlist.value.slice(0, limit.value)
+    
+  }
+}
 
 run()
 </script>
 
 <template>
-  <n-scrollbar>
-    <playlist-detail :playlist="playlist" :playlist-matadata="matadata">
-    </playlist-detail>
+ <n-scrollbar :on-scroll="onScroll">
+    <playlist-detail :all-playlist="playlist!" :render-playlist="renderPlaylist!"  :playlist-matadata="matadata!" />
   </n-scrollbar>
 </template>

@@ -10,6 +10,7 @@ import {
   useMessage
 } from 'naive-ui'
 
+// @ts-ignore
 import { useStore } from 'vuex'
 import { ref, onMounted, watch } from 'vue'
 
@@ -19,6 +20,8 @@ const store = useStore()
 const props = defineProps<{
   id: number
 }>()
+
+
 
 const musicLiked = (id: number) => store.state.likelist.includes(id)
 const { info } = useMessage()
@@ -41,6 +44,13 @@ const onMusicLike = () => {
 watch(
   () => props.id,
   () => {
+    liked.value = musicLiked(props.id)
+  }
+)
+watch(
+  () => store.state.likelist,
+  () => {
+    
     liked.value = musicLiked(props.id)
   }
 )

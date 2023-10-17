@@ -4,14 +4,10 @@ import {
   NSlider,
   NButton,
   NIcon,
-  NSpin,
   NPopover,
   NAvatar,
   NThing,
   NTooltip,
-  useMessage,
-  NConfigProvider,
-  darkTheme
 } from "naive-ui"
 import {
   ReceiptPlay20Regular,
@@ -31,198 +27,172 @@ import {
   Previous24Filled
 } from '@vicons/fluent'
 import { ref, onMounted, watch } from 'vue'
-import { Playlist } from '@/types'
-import { getMusicUrl } from '@/requests/getMusicUrl'
-import { useRequest } from 'vue-request'
+import { Song } from '../../types'
+import { getMusicUrl } from '../../requests/getMusicUrl'
+
+// @ts-ignore
 import { useStore } from "vuex"
 
-import playlistView from './playlistView.vue'
-import myAudio from '@/components/myAudio/myAudio.vue'
+import playingPlaylist from './playingPlaylist.vue'
 import playerDetail from "./playerDetail.vue"
-import musicLikeBtn from '@/components/musicLikeBtn/musicLikeBtn.vue'
-import artistLink from '@/components/linkBtn/artistLink.vue'
-
-const { info } = useMessage()
-
-const props = defineProps<{
-  playlist: Playlist
-  playlistTitle: string
-}>()
+import musicLikeBtn from '../../components/musicLikeBtn/musicLikeBtn.vue'
+import artistLink from '../../components/linkBtn/artistLink.vue'
+import { usePlayer } from "../../components/player/usePlayer"
+import { usePlayerState } from "../../components/player/usePlayerState"
+// @ts-ignore
+import { formatSeconds } from '../../utils/formatSeconds'
 
 const store = useStore()
+const { toggle, setExternalUpdate, onEnded, loop, onTimeupdate, setProgress, onLoadeddata } = usePlayer()
+const playerState = usePlayerState()
 
-const emits = defineEmits<{
-  (e: 'update:playlist', data: Playlist): void
-}>()
-
-const progress = ref(0)
-const show = ref(false)
-const index = ref(0)
-const playMode = ref(2)
-const playModeTooltip = ref(['单曲循环', '列表循环', '播完暂停'])
-const volume = ref(10)
-const muted = ref(false)
-const volumeBarShow = ref(false)
-const paused = ref(true)
-const darg = ref(false)
-const duration = ref(0)
-const loop = ref(true)
 const playerDetailShow = ref(false)
-const toolBarDarkMode = ref(false)
-const url = ref('http://music.163.com/song/media/outer/url?id=317151.mp3')
+const playingPlaylistShow = ref(false)
+const loopMode = ref(0)
+const playModeTooltip = ref([
+  '列表循环',
+  '单曲循环',
+  '播完歌单后暂停'
+])
+const volumeBarShow = ref(false)
+const currentSong = ref<Song | null>(null)
 
+// getPlaylistDetail(7162471052).then((res) => {
+//   const playlist = res?.data.playlist.tracks
+//   const formatted = formatPlaylist(playlist)
 
+//   store.commit('player/setPlaylist', formatted)
+// })
+
+onTimeupdate((progress) => {  
+  store.commit('player/setProgress', isNaN(progress) ? 0 : progress)
+})
+let init = true
+onMounted(() => {
+  onLoadeddata(() => {
+    if (init) {
+      setProgress(playerState.duration * (store.state.player.progress / 100))
+    }
+    init = false
+  })
+})
+
+onEnded(() => {
+  if (loopMode.value === 0) {
+    onNext()
+    
+  } else if (loopMode.value === 2) {
+    if (store.state.player.index === store.state.player.playlist.length - 1) {
+      store.commit('player/setIndex', 0)
+    }
+  }
+})
+
+const onDarg = () => {
+  setExternalUpdate(true)
+  const tempHandler = () => {
+    setExternalUpdate(false)
+    window.removeEventListener('mouseup', tempHandler)
+  }
+  window.addEventListener('mouseup', tempHandler)
+}
+const onCoverClick = () => {
+  playerDetailShow.value = true
+}
 const onPlayModeChange = () => {
-  if (playMode.value >= 2) {
-    playMode.value = 0
-  } else {
-    playMode.value++
+  if (loopMode.value === 1) {
+    loop(true)
   }
-  loop.value = playMode.value == 0
+  if (loopMode.value === 2) {
+    loopMode.value = 0
+  } else {
+    loop(false)
+    loopMode.value++
+  }
 }
-const onMuted = () => {
-
-}
-
-const onPaused = () => {
-  paused.value = !paused.value
-}
-const onPrevious = () => {
+const updateSong = () => {
+  const song = store.state.player.playlist[store.state.player.index]
   
-  if (playMode.value == 2) {
-    if (index.value <= 0) {
-      info('到顶了（〃｀ 3′〃）')
-    } else {
-      index.value--
-    }
-  } else {
-    if (index.value <= 0) {
-      index.value = props.playlist.length - 1
-    } else {
-      index.value--
-    }
+  if (song === undefined) {
+    return
   }
+  
+  if (song !== null || song !== undefined) {
+    currentSong.value = song
+    window.document.title = `${playerState.paused?' ':'▶'} ${currentSong.value?.name} - NCM_Redux`
+    console.log(currentSong.value)
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.name,
+      artist: song?.artists.map((a: any) => a.name + " "),
+      album:  song?.name,
+      artwork: [{ src: song?.album.picUrl }],
+    })
+    getMusicUrl(song?.id)
+      .then(res => {
+        
+        playerState.url = res?.data?.data[0]?.url
+        // play()
+        setTimeout(() => toggle(true), 100)
+      })
+  }
+}
+
+const onPrevious = () => {
+  store.commit('player/previous')
+  setTimeout(() => toggle(false), 1000)
 }
 const onNext = () => {
-  
-  if (playMode.value == 2) {
-    if (index.value >= props.playlist.length - 1) {
-      info('已经到最底下了（〃｀ 3′〃）')
-    } else {
-      index.value++
-    }
-  } else {
-    if (index.value >= props.playlist.length - 1) {
-      index.value = 0
-    } else {
-      index.value++
-    }
-  }
+  store.commit('player/next')
+  setTimeout(() => toggle(false), 1000)
 }
-const onSliderMousedown = () => {
-  darg.value = true
-  window.onmouseup = () => darg.value = false
-}
-const onEnded = () => {
-  if (playMode.value != 0) {
-    onNext()
-  }
+const onPauseClick = () => {
+  window.document.title = `${playerState.paused?' ':'▶'} ${currentSong.value?.name} - NCM_Redux`
+  toggle()
 }
 
-const { run, data, loading } = useRequest(getMusicUrl, {
-  onSuccess() {
-    duration.value = data.value?.data.data[0].time
-    url.value = data.value?.data.data[0].url
+navigator.mediaSession.setActionHandler('play', () => onPauseClick())
+navigator.mediaSession.setActionHandler('pause', () => onPauseClick())
+navigator.mediaSession.setActionHandler("previoustrack", () => onPrevious())
+navigator.mediaSession.setActionHandler("nexttrack", () => onNext())
+navigator.mediaSession.setActionHandler("seekbackward", () => onPrevious())
+navigator.mediaSession.setActionHandler("seekforward", () => onNext())
+
+
+watch(
+  () => store.state.player.index,
+  () => {
+    updateSong()
   }
-})
+)
+watch(
+  () => store.state.player.playlist,
+  () => {
+    updateSong()
+  }
+)
 onMounted(() => {
-  // 这里就用笨办法了
-  setTimeout(() => {
-    const _id = props.playlist[index.value]?.id
-    loop.value = playMode.value == 0
-    run(_id)
-  }, 1000);
+  updateSong()
 })
-watch(
-  () => props.playlist,
-  () => {
-    const _id = props.playlist[index.value]?.id
-    run(_id)
-  }
-)
-watch(
-  index,
-  () => {
-    const _id = props.playlist[index.value]?.id
-    run(_id)
-    store.commit('updateIndex', index.value)
-  }
-)
-watch(
-  progress,
-  () => {
-    store.commit('updateProgress', progress.value)
-  }
-)
-watch(
-  () => store.state.index,
-  () => {
-    index.value = store.state.index
-  }
-)
-watch(
-  () => store.state.paused,
-  () => {
-    paused.value = store.state.paused
-  }
-)
-watch(
-  playMode,
-  () => loop.value = playMode.value == 0
-)
 </script>
 
 <template>
   <n-layout-footer bordered class="player">
-    <my-audio
-      :url="url"
-      v-model:progress="progress"
-      :externalUpdate="darg"
-      :volume="volume"
-      :muted="muted"
-      :paused="paused"
-      :duration="duration"
-      :loop="loop"
-      @ended="onEnded"
-    ></my-audio>
-    <n-config-provider
-      :theme="
-        playerDetailShow ?
-          (toolBarDarkMode ? darkTheme : null) :
-        undefined
-      "
-      :class="['container', { playerDetailActive: playerDetailShow}]"
-    >
+    <div class="container">
       <div class="left">
         <n-thing>
           <template #avatar>
-            <n-spin :show="loading">
-              <n-avatar class="cover" @click="playerDetailShow = !playerDetailShow" :size="80" :src="props.playlist[index]?.album.picUrl" />
-            </n-spin>
+            <n-avatar @click="onCoverClick" :size="80" class="cover" :src="currentSong?.album.picUrl"></n-avatar>
           </template>
           <template #header>
-            {{ props.playlist[index]?.name }}
-            <span v-for="tns in props.playlist[index]?.tns">({{ tns }})</span>
+            {{ currentSong?.name }}
           </template>
           <template #description>
-            <span v-for="(artist, i) in props.playlist[index]?.artists">
-              <artist-link :id="artist.id">
-                {{ artist.name }} {{ i != props.playlist[index]?.artists.length-1 ? '/ ' : '' }}
-              </artist-link>
-            </span>
+            <artist-link v-for="artist in currentSong?.artists" :id="artist.id" style="margin-right: 7px;">
+              {{ artist.name }}
+            </artist-link>
           </template>
           <template #header-extra>
-            <musicLikeBtn :id="props.playlist[index]?.id" />
+            <musicLikeBtn :id="currentSong?.id" />
           </template>
         </n-thing>
       </div>
@@ -230,9 +200,9 @@ watch(
         <n-button size="large" circle quaternary @click="onPrevious">
           <n-icon size="25" :component="Previous24Filled" />
         </n-button>
-        <n-button size="large" circle @click="onPaused" type="primary">
-          <n-icon size="30" v-show="!paused" :component="Pause24Filled" />
-          <n-icon size="30" v-show="paused" :component="Play24Filled" />
+        <n-button size="large" circle @click="onPauseClick" type="primary">
+          <n-icon size="30" v-show="!playerState.paused" :component="Pause24Filled" />
+          <n-icon size="30" v-show="playerState.paused" :component="Play24Filled" />
         </n-button>
         <n-button size="large" circle quaternary @click="onNext">
           <n-icon size="25" :component="Next24Filled" />
@@ -242,66 +212,67 @@ watch(
         <n-popover width="trigger" trigger="click" style="height: 200px; display: flex; justify-content: center;z-index: 9999;"
           content-style="height:100%; padding: 0;" @update:show="val => volumeBarShow = val">
           <template #trigger>
-            <n-button size="large" circle quaternary @click="onMuted">
+            <n-button size="large" circle quaternary>
               <template #icon>
-                <n-icon size="30" v-show="!volumeBarShow && volume == 0" :component="Speaker024Regular" />
-                <n-icon size="30" v-show="!volumeBarShow && volume < 0.6 && volume > 0" :component="Speaker124Regular" />
-                <n-icon size="30" v-show="!volumeBarShow && volume > 0.6" :component="Speaker224Regular" />
-                <n-icon size="30" v-show="volumeBarShow && volume == 0" :component="Speaker024Filled" />
-                <n-icon size="30" v-show="volumeBarShow && volume < 0.6 && volume > 0" :component="Speaker124Filled" />
-                <n-icon size="30" v-show="volumeBarShow && volume > 0.6" :component="Speaker224Filled" />
+                <n-icon size="30" v-show="!volumeBarShow && playerState.volume == 0" :component="Speaker024Regular" />
+                <n-icon size="30" v-show="!volumeBarShow && playerState.volume < 0.6 && playerState.volume > 0" :component="Speaker124Regular" />
+                <n-icon size="30" v-show="!volumeBarShow && playerState.volume > 0.6" :component="Speaker224Regular" />
+                <n-icon size="30" v-show="volumeBarShow && playerState.volume == 0" :component="Speaker024Filled" />
+                <n-icon size="30" v-show="volumeBarShow && playerState.volume < 0.6 && playerState.volume > 0" :component="Speaker124Filled" />
+                <n-icon size="30" v-show="volumeBarShow && playerState.volume > 0.6" :component="Speaker224Filled" />
               </template>
             </n-button>
           </template>
-          <n-slider vertical v-model:value="volume" :step="0.01" :tooltip="false"
+          <n-slider vertical v-model:value="playerState.volume" :step="0.01" :tooltip="false"
             :format-tooltip="num => `${Math.floor(num)}%`"></n-slider>
         </n-popover>
         <n-tooltip trigger="hover">
           <template #trigger>
             <n-button size="large" circle quaternary @click="onPlayModeChange">
               <template #icon>
-                <n-icon size="30" v-show="playMode == 0" :component="Replay20Filled" />
-                <n-icon size="30" v-show="playMode == 1" :component="ArrowRepeatAll20Filled" />
-                <n-icon size="30" v-show="playMode == 2" :component="ArrowRepeatAllOff20Filled" />
+                <n-icon size="30" v-show="loopMode == 0" :component="Replay20Filled" />
+                <n-icon size="30" v-show="loopMode == 1" :component="ArrowRepeatAll20Filled" />
+                <n-icon size="30" v-show="loopMode == 2" :component="ArrowRepeatAllOff20Filled" />
               </template>
             </n-button>
           </template>
           <span>
-            {{ playModeTooltip[playMode] }}
+            {{ playModeTooltip[loopMode] }}
           </span>
         </n-tooltip>
-
-        <n-button size="large" circle quaternary @click="show = !show">
+        <n-button size="large" circle quaternary @click="playingPlaylistShow = !playingPlaylistShow">
           <template #icon>
-            <n-icon size="30" v-show="!show" :component="ReceiptPlay20Regular" />
-            <n-icon size="30" v-show="show" :component="ReceiptPlay20Filled" />
+            <n-icon size="30" v-show="!playingPlaylistShow" :component="ReceiptPlay20Regular" />
+            <n-icon size="30" v-show="playingPlaylistShow" :component="ReceiptPlay20Filled" />
           </template>
         </n-button>
       </div>
-      <n-slider
-        :class="['progressSlider', { playerDetailActive: playerDetailShow}]"
-        v-model:value="progress"
-        :step="0.001"
-        @mousedown="onSliderMousedown"
-        :format-tooltip="n => `${Math.floor((n/100*duration/1000) / 60) % 60}:${(Math.floor((n/100*duration/1000)) % 60)<10?0:''}${(Math.floor((n/100*duration/1000)) % 60)}`"
-      >
-        <template #thumb>
-          <n-button v-if="playerDetailShow" text circle></n-button>
-        </template>
-      </n-slider>
-    </n-config-provider>
-    <playlistView v-model:index="index" v-model:show="show" :playlist="props.playlist" :playlist-title="props.playlistTitle" />
-    <playerDetail @update:dark-mode="v => toolBarDarkMode = v" :song="playlist[index]" v-model:show="playerDetailShow" />
+    </div>
+    <n-slider
+      :class="['progressSlider', { playerDetailActive: playerDetailShow}]"
+      v-model:value="playerState.progress"
+      :step="0.001"
+      @update:value="onDarg"
+      :format-tooltip="_ => formatSeconds(playerState.duration * (playerState.progress / 100))"
+    >
+      <template #thumb>
+        <n-button v-if="playerDetailShow" text circle></n-button>
+      </template>
+    </n-slider>
+
+    <playerDetail :song="currentSong!" v-model:show="playerDetailShow" />
+    <playing-playlist :playlist-title="'aaa'" v-model:show="playingPlaylistShow"></playing-playlist>
   </n-layout-footer>
 </template>
 
 <style lang="less" scoped>
-@import url('@/styles/varible.less');
+@import url('../../styles/varible.less');
 .player {
   width: 100%;
+  display: flex;
 }
 .progressSlider {
-  position: fixed;
+  position: absolute;
   bottom: calc(@footer-height - 8px);
   z-index: 1000;
   transition: bottom .5s;
@@ -312,20 +283,10 @@ watch(
   z-index: 5000;
   bottom: -6.5px;
 }
-.container.playerDetailActive {
-  .left {
-    margin-left: -50%;
-  }
-
-  .middle,
-  .right,
-  .left {
-    z-index: 9998;
-  }
-}
 
 .container {
   height: 100%;
+  width: 100%;
   padding-left: @total-padding-left;
   padding-right: @total-padding-right;
   position: relative;

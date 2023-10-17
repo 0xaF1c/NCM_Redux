@@ -1,48 +1,29 @@
 <script setup lang="ts">
+import PlayerProvider from './components/player/PlayerProvider.vue'
+import loginProvider from './components/login/loginProvider.vue'
+
 import {
   NLoadingBarProvider,
   NMessageProvider,
   NLayout,
   NConfigProvider,
   NLayoutContent,
-  NLayoutFooter,
   NLayoutSider,
-  NSlider,
-  NMenu,
-  NScrollbar
 } from 'naive-ui'
+import { RouterView, onBeforeRouteLeave } from 'vue-router'
+// @ts-ignore
+import { useStore } from 'vuex'
 import headerView from './views/header/headerView.vue'
-import loginView from './views/login/loginView.vue'
-import playerView from './views/player/playerView.vue'
 import menuView from './views/menu/menuView.vue'
 
 import { useToggleTheme } from './utils/toggleTheme'
-import { ref, reactive, watch } from 'vue'
-import { useStore, mapGetters } from 'vuex'
-import { http } from './utils/request'
-import { Song } from './types'
-
+import { isMobile } from './utils/isMobile'
+import { ref } from 'vue'
 const store = useStore()
-
 const { theme } = useToggleTheme()
 
 const show = ref(false)
-
-/* test */
-const state = reactive<{
-  playlist: Array<Song>
-  playlistTitle: string
-}>({
-  playlist: [],
-  playlistTitle: ''
-})
-
-watch(
-  () => store.state.playlist,
-  () => {
-    state.playlist = store.state.playlist
-  }
-)
+const collapsed = ref(isMobile())
 
 const lightThemeOverrides = {
   common: {
@@ -55,28 +36,56 @@ const darkThemeOverrides = {
     // primaryColor: '#FFFFFF'
   }
 }
+
+store.dispatch('getLikelist')
+store.commit('player/init')
+// store.commit('player/init')
+// console.log(isMobile());
+onBeforeRouteLeave((_to, from, next) => {
+  console.log(from.path)
+  next((vm: any) => {
+    console.log(from.path)
+    vm.fromPath = from.path
+  })
+})
+
 </script>
 
 <template>
-
   <n-config-provider :theme="theme" :theme-overrides="theme === null ? lightThemeOverrides : darkThemeOverrides">
     <n-message-provider>
       <n-loading-bar-provider>
-
-        <loginView @update:show="value => show = value" :show="show" />
-        <n-layout class="container" :scrollbar-props="{scrollable: false, containerStyle: {overflow: 'hidden'}, contentStyle: {overflow: 'hidden'}, }" native-scrollbar>
-          <header-view v-model:show="show" v-model:theme="theme"></header-view>
-          <n-layout has-sider class="medium">
-            <n-layout-sider bordered>
-              <menu-view />
-            </n-layout-sider>
-            <n-layout-content>
-              <router-view />
-            </n-layout-content>
-          </n-layout>
-          <playerView v-model:playlist="state.playlist" :playlist-title="state.playlistTitle" />
-        </n-layout>
-
+        <loginProvider>
+          <PlayerProvider>
+            <n-layout class="container"
+              :scrollbar-props="{ scrollable: false, containerStyle: { overflow: 'hidden' }, contentStyle: { overflow: 'hidden' }, }"
+              native-scrollbar>
+              <header-view v-model:show="show" v-model:theme="theme"></header-view>
+              <n-layout has-sider class="medium">
+                <n-layout-sider
+                  bordered 
+                  collapse-mode="width"
+                  :collapsed-width="84"
+                  :width="240"
+                  :collapsed="collapsed"
+                  show-trigger
+                  @collapse="collapsed = true"
+                  @expand="collapsed = false"
+                >
+                  <menu-view :collapsed="collapsed" />
+                </n-layout-sider>
+                <n-layout-content>
+                  <router-view />
+                </n-layout-content>
+              </n-layout>
+              
+              <router-view name="player" />
+              <!-- <playerView /> -->
+              <!-- <keep-alive>
+              </keep-alive> -->
+            </n-layout>
+          </PlayerProvider>
+        </loginProvider>
       </n-loading-bar-provider>
     </n-message-provider>
   </n-config-provider>

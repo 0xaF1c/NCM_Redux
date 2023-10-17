@@ -1,51 +1,18 @@
-<br />
+# Vue 3 + TypeScript + Vite
 
-<p align="center">
-  <img src="./src/assets/nologo.png" alt="Logo" width="156" height="156">
-  <h3 align="center">没有图标</h3>
-</p>
+This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-## Project introduce
+## Recommended IDE Setup
 
-一个基于 [NeteaseCloudMusicApi](https://github.com/Binaryify/NeteaseCloudMusicApi)的播放器
+- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
 
-#### ✨特性
-- ⭐ 使用了尤大推荐的 [naive-ui](https://github.com/tusen-ai/naive-ui) 组件库
-- 🔍 支持搜索
-- 📃 支持歌词滚动
-- 🎵 网易云账号登录 
-- 🎧 支持私人FM和每日推荐
-- 🌙/☀️ Light / Dark 模式切换 or 自动切换
+## Type Support For `.vue` Imports in TS
 
-## setup
+TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
 
-```shell
-git clone https://github.com/0xaF1c/cloud-music-redux.git
+If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
 
-yarn && yarn serve
-
-# using npm
-
-npm install && npm run serve
-```
-
-### backend installing
-```shell
-git clone https://github.com/Binaryify/NeteaseCloudMusicApi
-
-yarn && yarn start
-
-# using npm
-
-npm install && npm run start
-```
-
-### 编译和部署
-#### 如需自定义api地址
-需要更改 `/src/utils/request.ts` 里 axios 里的 proxy 改成自己的api地址
-```shell
-yarn build
-
-# using npm
-npm run build
-```
+1. Disable the built-in TypeScript Extension
+   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
+   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
+2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.

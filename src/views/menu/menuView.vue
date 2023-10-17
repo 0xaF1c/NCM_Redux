@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {
   NMenu,
-  NScrollbar
+  NScrollbar,
+  NTooltip
 } from 'naive-ui'
 
 import {
@@ -17,17 +18,19 @@ import {
 } from '@vicons/fluent'
 
 import { useMenuOptions } from './menuOption'
-import { ref, h, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import { getUserPlaylist } from '@/requests/getUserPlaylist'
-import { formatPlaylistSet } from '@/utils/formatPlaylistSet'
-import { renderIcon } from '@/utils/renderIcon'
+import { ref, h, watch, onMounted } from 'vue'
+import { getUserPlaylist } from '../../requests/getUserPlaylist'
+import { formatPlaylistSet } from '../../utils/formatPlaylistSet'
+import { renderIcon } from '../../utils/renderIcon'
 import { RouterLink } from 'vue-router'
+import { isLoggedIn } from '../../utils/auth'
+import { getUserStatus } from '../../requests/getUserStatus'
 
-const store = useStore()
 const { options, override, insert } = useMenuOptions()
 
-const userId = store.getters.userStatus?.profile.userId
+const props = defineProps<{
+  collapsed: boolean
+}>()
 
 const selected = ref<string | number>('home')
 
@@ -35,30 +38,46 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
   return () => (condition() ? renderIcon(icons[0])() : renderIcon(icons[1])())
 }
 
-; (async () => {
-  if (userId) {
+const update = async () => {
+  if (isLoggedIn()) {
+    const userId = (await getUserStatus())?.data?.data?.profile?.userId
+
     const res = await getUserPlaylist(userId)
-  
+
     const formatted = formatPlaylistSet(res.data.playlist)
-  
+
     const myPlaylist: any = []
     const myFavoritePlaylist: any = []
-  
+
     formatted.forEach((item, i) => {
       const leaf = {
         label: () => h(
-          RouterLink,
+          NTooltip,
           {
-            to: {
-              path: '/playlistDetail',
-              name: 'playlistDetail',
-              query: {
-                id: item.id
-              }
-            },
+            trigger: 'hover',
+            placement: 'bottom',
+            showArrow: false,
+            disabled: !props.collapsed,
+            flip: false
           },
-          { default: () => item.name }
+          {
+            trigger: h(
+              RouterLink,
+              {
+                to: {
+                  path: '/playlistDetail',
+                  name: 'playlistDetail',
+                  query: {
+                    id: item.id
+                  }
+                },
+              },
+              { default: () => item.name }
+            ),
+            default: item.name
+          }
         ),
+        labelField: item.name,
         key: item.id,
         icon: renderIcon(List24Filled)
       }
@@ -69,7 +88,7 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
           myFavoritePlaylist.push(leaf)
       }
     })
-  
+
     insert(3, {
       key: 'favorite',
       label: () => h(
@@ -107,7 +126,7 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
         [Clock24Filled, Clock24Regular]
       )
     })
-  
+
     override([
       {
         key: 'home',
@@ -140,16 +159,25 @@ const selectedIcon = (condition: () => boolean, icons: any) => {
         }
       }
     ])
-  
+
     selected.value = parseInt(window.location.hash.split('?id=')[1])
   }
-})()
+}
 
+watch(
+  () => isLoggedIn(),
+  () => {
+    update()
+  }
+)
+
+update()
 
 </script>
 
 <template>
   <n-scrollbar>
-    <n-menu :options="options" v-model:value="selected"></n-menu>
+    <n-menu :collapsed="props.collapsed" :collapsed-width="64" :collapsed-icon-size="22" :options="options"
+      v-model:value="selected"></n-menu>
   </n-scrollbar>
 </template>

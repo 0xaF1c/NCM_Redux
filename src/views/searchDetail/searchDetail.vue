@@ -2,12 +2,17 @@
 import { ref, reactive, watch } from 'vue'
 import { useRequest } from 'vue-request'
 import { useRoute } from 'vue-router'
-import { search } from '@/requests/search'
-import { formatPlaylist } from '@/utils/formatPlaylist'
-import { NScrollbar } from 'naive-ui'
+import { search } from '../../requests/search'
+import { formatPlaylist } from '../../utils/formatPlaylist'
+import { NScrollbar, useLoadingBar } from 'naive-ui'
 
 import playlistDetail from '../../components/playlistDetail/playlistDetail.vue'
 
+
+const { start, error, finish } = useLoadingBar()
+
+
+start()
 const route = useRoute()
 
 const playlist = ref()
@@ -26,14 +31,25 @@ const matadata = reactive<PlaylistMatadata>({
 const { run, loading, data } = useRequest(search, {
   onSuccess() {
     const songs = data.value.data.result.songs
-    const formatted = formatPlaylist(songs)
+    if (songs === undefined) {
+      matadata.name = '搜索结果 - 什么都没搜到 关于 - ' + route.query.keywords
+      
+      error()
+    } else {
+      const formatted = formatPlaylist(songs)
+      renderPlaylist.value = formatted.slice(0, limit.value)
+      matadata.coverImgUrl = formatted[0]?.album.picUrl
+      playlist.value = formatted
+      finish()
+    }
     
-    matadata.coverImgUrl = formatted[0]?.album.picUrl
-    playlist.value = formatted
+    
   }
 })
 const update = () => {
+  start()
   run(route.query.keywords, 1)
+  matadata.name = '搜索结果 - ' + route.query.keywords
 }
 update()
 watch(
@@ -42,10 +58,24 @@ watch(
     update()
   }
 )
+
+const renderPlaylist = ref()
+const limit = ref(20)
+const getViewport = (el: HTMLElement) => {
+  return el.scrollHeight - el.clientHeight
+}
+const onScroll = (e: Event) => {
+  if (e.currentTarget?.scrollTop == getViewport(e.currentTarget)) {
+    if (loading.value == false) {
+      limit.value += 10
+      renderPlaylist.value = playlist.value.slice(0, limit.value)
+    }
+  }
+}
 </script>
 
 <template>
-  <n-scrollbar>
-    <playlist-detail :playlist="playlist" :playlist-matadata="matadata"></playlist-detail>
+  <n-scrollbar :on-scroll="onScroll">
+    <playlist-detail :all-playlist="playlist!" :render-playlist="renderPlaylist!" :playlist-matadata="matadata!" />
   </n-scrollbar>
 </template>

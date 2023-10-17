@@ -16,7 +16,7 @@ import playlistViewer from '../../components/playlistViewer/playlistViewer.vue'
 import { recommendResource } from '../../requests/recommendResource'
 
 import { ref } from 'vue'
-import { formatPlaylistSetWithResources } from '@/utils/formatPlaylistSet'
+import { formatPlaylistSetWithResources } from '../../utils/formatPlaylistSet'
 
 const playlistSet = ref()
 

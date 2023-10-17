@@ -20,7 +20,7 @@
             </n-carousel-item>
           </n-carousel>
         </n-spin>
-        <n-space justify="space-between" item-style="width: 49%;">
+        <n-space justify="space-between" item-style="width: 49%;min-width: 550px;">
           <n-card hoverable class="recommend" @click="$router.push('/recommendSongs')">
             <n-thing>
               <template #avatar>
@@ -32,10 +32,10 @@
                 </n-text>
               </template>
               <template #description>
-                <n-text style="font-size: 1.2rem;">
+                <n-ellipsis style="font-size: 1.2rem;max-width: 340px;">
                   猜你喜欢:
                   {{ recommendSongsRef?.dailySongs[0].name }}
-                </n-text>
+                </n-ellipsis>
               </template>
             </n-thing>
           </n-card>
@@ -45,12 +45,12 @@
                 <n-avatar :size="150" :src="recommendResourceRef?.recommend[0].picUrl"></n-avatar>
               </template>
               <template #header>
-                <n-ellipsis style="font-size: 2.5rem;">
+                <n-ellipsis style="font-size: 2.5rem;max-width: 340px;">
                   {{ recommendResourceRef?.recommend[0].name }}
                 </n-ellipsis>
               </template>
               <template #description>
-                <n-ellipsis style="font-size: 1.2rem;">
+                <n-ellipsis style="font-size: 1.2rem;max-width: 340px;">
                   {{ recommendResourceRef?.recommend[1].name }}
                 </n-ellipsis>
               </template>
@@ -97,11 +97,11 @@ import {
   NScrollbar,
   NEllipsis
 } from 'naive-ui'
-import playlistViewer from '@/components/playlistViewer/playlistViewer.vue'
-import { banner } from '@/requests/banner'
-import { recommendSongs } from '@/requests/recommendSongs'
-import { recommendResource } from '@/requests/recommendResource'
-import { personalized } from '@/requests/personalized'
+import playlistViewer from '../../components/playlistViewer/playlistViewer.vue'
+import { banner } from '../../requests/banner'
+import { recommendSongs } from '../../requests/recommendSongs'
+import { recommendResource } from '../../requests/recommendResource'
+import { personalized } from '../../requests/personalized'
 import { useRequest } from 'vue-request'
 import { ref } from 'vue'
 const { loading, data, run } = useRequest(banner)

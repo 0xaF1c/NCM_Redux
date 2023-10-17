@@ -2,36 +2,32 @@
 
 import {
   NLayoutHeader,
-  NButton,
   NSwitch,
   NIcon,
   GlobalTheme,
-  NInput,
-  NText,
   NSpace,
   NAvatar,
-  useLoadingBar,
-  useMessage
+  NPopconfirm,
+  useMessage,
+  NButton
 } from 'naive-ui'
 import searchView from './searchView.vue'
 
 import { useToggleTheme } from '../../utils/toggleTheme'
-import { WeatherMoon16Filled, WeatherSunny16Filled } from '@vicons/fluent'
-import { reactive } from 'vue'
-import { useRequest } from 'vue-request'
-import { getUserStatus } from '@/requests/getUserStatus'
-import { useStore } from 'vuex'
+import { WeatherMoon16Filled, WeatherSunny16Filled, ArrowRight24Filled, ArrowLeft24Filled } from '@vicons/fluent'
+import { ref, watch } from 'vue'
+import { getUserStatus } from '../../requests/getUserStatus'
+import { isLoggedIn, logout } from '../../utils/auth'
+import { useLoginModal } from '../../components/login/useLoginModal'
+import { useRouter, useRoute } from 'vue-router'
 
-const store = useStore()
 
+const route = useRoute()
+const { back, forward } = useRouter()
 const { theme, toggleTheme, currentTheme, currentThemeBool } = useToggleTheme()
-const { start, finish, error } = useLoadingBar()
 const { success, info } = useMessage()
+const { showLoginModal } = useLoginModal()
 
-const props = defineProps<{
-  show: boolean
-  theme: GlobalTheme | null
-}>()
 
 const emits = defineEmits<{
   (e: 'update:theme', data: GlobalTheme | null): void
@@ -42,53 +38,73 @@ const onThemeToggle = () => {
   toggleTheme()
   emits('update:theme', theme.value)
 }
-const onLoginViewShow = () => {
-  console.log(state.profile)
-  if (state.profile == null) {
-    emits('update:show', !props.show)
-  } else {
-    info('你已经登录了 请先注销')
-    emits('update:show', false)
+
+const profile = ref()
+const backDisable = ref(window.history?.state.back === null)
+const forwardDisable = ref(window.history?.state.forward === null)
+
+watch(
+  () => route.path,
+  () => {
+    backDisable.value = window.history?.state.back === null
+    forwardDisable.value = window.history?.state.forward === null
   }
+)
+const onBack = () => {
+  if (window.history?.state.back === null) return;
+  backDisable.value = window.history?.state.back === null
+
+  back()
+}
+const onForward = () => {
+  forwardDisable.value = window.history?.state.forward === null
+  forward()
 }
 
+  ; (async () => {
+    if (isLoggedIn()) {
+      const _profile = (await getUserStatus())?.data?.data?.profile
 
-const state = reactive<any>({
-  profile: null
-})
-
-
-
-if (store.getters.userStatus?.profile == null) {
-  info('您还未登录')
-  const { data, run } = useRequest(getUserStatus, {
-    onSuccess() {
-      //@ts-ignore
-      const status = data.value.data.data
-      state.profile = status.profile
-
-      if (status.profile != null) {
-        store.commit('updateUserStatus', status)
+      if (_profile) {
         success('获取状态成功')
+        profile.value = _profile
+
       }
-      finish()
-    },
-    onError() {
-      error()
+
+    } else {
+      info('您还未登录')
     }
-  })
-  start()
-  run()
-} else {
-  state.profile = store.state.userStatus.profile
+
+  })()
+const handlePositiveClick = () => {
+  success('退出登录成功')
+  logout()
 }
 </script>
 
 <template>
   <n-layout-header style="z-index: 10" bordered class="header">
-    <n-text>
-      Logo
-    </n-text>
+    <n-space align="center" justify="space-around">
+      <n-space align="center">
+        <img src="/cloud_music.svg" width="70" />
+        <div style="display: flex; align-items: center;">
+          <h1>NCM</h1>__
+          <span>Redux</span>
+        </div>
+      </n-space>
+
+
+      <n-button quaternary circle :disabled="backDisable" @click="onBack">
+        <template #icon>
+          <n-icon :size="25" :component="ArrowLeft24Filled"></n-icon>
+        </template>
+      </n-button>
+      <n-button quaternary circle :disabled="forwardDisable" @click="onForward">
+        <template #icon>
+          <n-icon :size="25" :component="ArrowRight24Filled"></n-icon>
+        </template>
+      </n-button>
+    </n-space>
     <searchView />
 
     <n-space align="center" justify="space-between">
@@ -99,13 +115,25 @@ if (store.getters.userStatus?.profile == null) {
         </template>
       </n-switch>
 
-      <n-avatar :src="state.profile?.avatarUrl || '/default.png'" @click="onLoginViewShow" size="large" circle />
+
+      <n-popconfirm
+        @positive-click="handlePositiveClick"
+        positive-text="确认"
+        negative-text="取消"
+        v-if="isLoggedIn()"
+      >
+        <template #trigger>
+          <n-avatar :src="profile?.avatarUrl ?? '/default.png'" size="large" circle />
+        </template>
+        您是否要退出登录
+      </n-popconfirm>
+      <n-avatar v-if="!isLoggedIn()" @click="showLoginModal()" src="/default.png" size="large" circle />
     </n-space>
   </n-layout-header>
 </template>
 
 <style scoped lang="less">
-@import url('@/styles/varible.less');
+@import url('../../styles/varible.less');
 
 .n-input {
   width: 400px;

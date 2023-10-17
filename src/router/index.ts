@@ -1,50 +1,87 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-
+const player = () => import('../views/player/playerView.vue')
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: () => import('../views/home/HomeView.vue')
+    components: {
+      default: () => import('../views/home/HomeView.vue'),
+      player
+    }
   },
   {
     path: '/history',
     name: 'history',
-    component: () => import('../views/history/history.vue')
+    components: {
+      default: () => import('../views/history/history.vue'),
+      player
+    }
   },
   {
     path: '/personalFm',
     name: 'personalFm',
-    component: () => import('../views/discover/personalFmView.vue')
+    components: {
+      default: () => import('../views/discover/personalFmView.vue'),
+      player
+    }
   },
   {
     path: '/playlistDetail',
     name: 'playlistDetail',
-    component: () => import('../views/playlistDetail/playlistDetailView.vue'),
+    components: {
+      default: () => import('../views/playlistDetail/playlistDetailView.vue'),
+      player
+    }
   },
   {
     path: '/recommendSongs',
     name: 'recommendSongs',
-    component: () => import('../views/recommend/recommendSongView.vue') 
+    components: {
+      default: () => import('../views/recommend/recommendSongView.vue') ,
+      player
+    }
   },
   {
     path: '/recommendPlaylist',
     name: 'recommendPlaylist',
-    component: () => import('../views/recommend/recommendPlaylistView.vue')
+    components: {
+      default: () => import('../views/recommend/recommendPlaylistView.vue'),
+      player
+    }
   },
   {
     path: '/artistDetail',
     name: 'artistDetail',
-    component: () => import('../views/artistDetail/artistDetail.vue')
+    components: {
+      default: () => import('../views/artistDetail/artistDetail.vue'),
+      player
+    }
   },
   {
     path: '/albumDetail',
     name: 'albumDetail',
-    component: () => import('../views/albumDetail/albumDetail.vue')
+    components: {
+      default: () => import('../views/albumDetail/albumDetail.vue'),
+      player
+    }
   },
   {
     path: '/searchDetail',
     name: 'searchDetail',
-    component: () => import('../views/searchDetail/searchDetail.vue')
+    components: {
+      default: () => import('../views/searchDetail/searchDetail.vue'),
+      player
+    }
+  },
+  {
+    path: '/player',
+    name: 'player',
+    components: {
+      default: () => import('../views/player/playerView.vue'),
+    },
+    meta: {
+      keepAlive: true,
+    }
   }
 ]
 

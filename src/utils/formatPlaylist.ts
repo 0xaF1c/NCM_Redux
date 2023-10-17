@@ -1,4 +1,4 @@
-import { Playlist, Song } from '@/types'
+import { Playlist, Song } from '../types'
 
 export function formatPlaylist(playlist: any): Playlist {
   return playlist.map((item: any): Song => {

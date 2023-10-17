@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Playlist, PlaylistMatadata, Song } from '@/types'
+import { Playlist, PlaylistMatadata, Song } from '../../types'
 import {
   NPageHeader,
   NAvatar,
@@ -14,37 +14,36 @@ import {
   NDataTable,
   NIcon,
   NTooltip,
-  NSpin,
   useThemeVars,
   type DataTableColumns,
-useMessage
+  useMessage,
+  NEllipsis
 } from 'naive-ui'
 import { Play24Filled, Play24Regular, Share24Filled, Star24Regular } from '@vicons/fluent'
-import { ref, watch, onMounted, h } from 'vue'
-import { formatTimerstamp } from '@/utils/formatTimerstamp'
-import { renderIcon } from '@/utils/renderIcon'
+import { ref, watch, h } from 'vue'
+import { formatTimerstamp } from '../../utils/formatTimerstamp'
+import { renderIcon } from '../../utils/renderIcon'
+// @ts-ignore
 import { useStore } from 'vuex'
 
-import musicLikeBtn from '@/components/musicLikeBtn/musicLikeBtn.vue'
-import albumLink from '@/components/linkBtn/albumLink.vue'
-import artistLink from '@/components/linkBtn/artistLink.vue'
-import { formatPlaylist } from '@/utils/formatPlaylist'
-import { playlistTrackAll } from '@/requests/playlistTrackAll'
-import { useRoute } from 'vue-router'
+import musicLikeBtn from '../../components/musicLikeBtn/musicLikeBtn.vue'
+import albumLink from '../../components/linkBtn/albumLink.vue'
+import artistLink from '../../components/linkBtn/artistLink.vue'
+import { usePlayer } from '../../components/player/usePlayer'
 
+const { toggle } = usePlayer();
 
 const store = useStore()
 const emits = defineEmits<{
   (e: 'playButtonClick', data: Event): void
 }>()
 const props = defineProps<{
-  playlist: Playlist
+  allPlaylist: Playlist
+  renderPlaylist: Playlist
   playlistMatadata: PlaylistMatadata
   album?: boolean
 }>()
-const route = useRoute()
-const id = ref(window.location.hash.split('?id=')[1])
-const { error } = useMessage()
+const { info } = useMessage()
 
 type RawData = {
   cover: string
@@ -59,10 +58,11 @@ const vars = useThemeVars()
 
 const data = ref()
 const loading = ref(true)
-const exportPlaylist = ref<Playlist>([])
 const showDescription = ref(false)
 
-const condition = (index: number) => store.state.index == index && store.state.playlistId == id.value
+const condition = (id: number) => {
+  return id == store.state.player.playlist[store.state.player.index]?.id
+}
 const iconStyle = {
   '--n-text-color-hover': vars.value.baseColor,
   '--n-text-color': vars.value.baseColor,
@@ -83,7 +83,8 @@ const columns: DataTableColumns<RawData> = [
         }
       )
     },
-    width: 10
+    width: 10,
+    resizable: true
   },
   {
     key: 'like',
@@ -92,7 +93,7 @@ const columns: DataTableColumns<RawData> = [
         musicLikeBtn,
         {
           id: rowData?.songData.id,
-          style: condition(rowData.index) ? iconStyle : null,
+          style: condition(rowData.songData.id) ? iconStyle : null,
         }
       )
     },
@@ -100,42 +101,62 @@ const columns: DataTableColumns<RawData> = [
   },
   {
     key: 'play',
-    render(rowData) {
+    render(rowData, index) {
       return h(
         NButton,
         {
           quaternary: true,
           circle: true,
-          style: condition(rowData.index) ? iconStyle : null,
+          style: condition(rowData.songData.id) ? iconStyle : null,
           onClick() {
-            exportPlaylist.value.push(rowData.songData)
-            store.commit('updateIndex', rowData.index)
+            store.commit('player/setPlaylist', props.allPlaylist)
+            store.commit('player/setIndex', index)
+            setTimeout(() => {
+              toggle(false)
+            }, 1000);
           }
         },
         {
-          icon: condition(rowData.index) ? renderIcon(Play24Filled) : renderIcon(Play24Regular)
+          icon: condition(rowData.songData.id) ? renderIcon(Play24Filled) : renderIcon(Play24Regular)
         }
       )
-    }
+    },
+    width: 10
   },
   {
     title: '标题',
-    key: 'name'
+    key: 'name',
+    resizable: true,
+    render(rowData) {
+      return h(
+        NEllipsis,
+        {
+          style: {
+            maxWidth: '200px'
+          }
+        },
+        rowData.songData.name
+      )
+    }
   },
   {
     title: '作者',
     key: 'artists',
     render(rowData) {
       return h(
-        NText,
-        {},
+        NEllipsis,
+        {
+          style: {
+            maxWidth: '100px'
+          }
+        },
         [
-          rowData.songData.artists.map((artist, index) => ([
+          rowData.songData.artists.map((artist, _index) => ([
             h(
               artistLink,
               {
                 id: artist.id,
-                style: condition(rowData.index) ? iconStyle : null,
+                style: condition(rowData.songData.id) ? iconStyle : null,
               },
               artist.name
             ),
@@ -143,7 +164,8 @@ const columns: DataTableColumns<RawData> = [
           )
         ]
       )
-    }
+    },
+    resizable: true
   },
   {
     title: '专辑',
@@ -152,22 +174,46 @@ const columns: DataTableColumns<RawData> = [
       return h(
         albumLink,
         {
-          style: condition(rowData.index) ? iconStyle : null,
+          style: condition(rowData.songData.id) ? iconStyle : null,
           id: rowData.songData.album.id
         },
-        rowData.songData.album.name
+        h(
+          NEllipsis,
+          {
+            style: {
+              maxWidth: '240px'
+            }
+          },
+          rowData.songData.album.name
+        )
+      )
+    },
+    resizable: true
+  },
+
+  {
+    title: '时长',
+    key: 'dt',
+    render(rowData: RawData) {
+      return h(
+        NEllipsis,
+        {
+          style: {
+            maxWidth: '100px'
+          }
+        },
+        rowData.dt
       )
     }
   },
-
-  { title: '时长', key: 'dt' },
 ]
 const updatePlaylistData = () => {
-  data.value = props.playlist.map((song: Song, i) => {
+
+  data.value = props.renderPlaylist.map((song: Song, i) => {
     return {
       cover: song.album.picUrl,
       name: `${song.name}`,
-      dt: `${formatTimerstamp(song.dt, (h, m, s) => `${m>9?m:'0'+m}:${s>9?s:'0'+s}`)}`,
+      dt: `${formatTimerstamp(song.dt, (_h, m, s) => `${m > 9 ? m : '0' + m}:${s > 9 ? s : '0' + s}`)}`,
       artists: `${song.artists[0].name}`,
       album: `${song.album.name}`,
       songData: song,
@@ -186,49 +232,31 @@ const rowProps = (row: RawData, rowIndex: number) => {
   `
   const options: any = {
     ondblclick: () => {
-      if (id.value != store.state.playlistId) {
-        if (props.playlistMatadata.id != -1) {
-          if (props.album) {
-
-            id.value = store.state.playlistId
-            store.commit('updatePlaylist', props.playlist)
-            store.commit('updatePlaylistId', store.state.playlistId)
-          } else {
-            playlistTrackAll(store.state.playlistId)
-              .then((res) => {
-                id.value = store.state.playlistId
-                        
-                if (res.data?.songs) {
-                  store.commit('updatePlaylist', formatPlaylist(res.data?.songs))
-                  
-                  store.commit('updatePlaylistId', store.state.playlistId)
-                } else if (props.playlist.length > 0) {
-                  store.commit('updatePlaylist', props.playlist)
-                  store.commit('updatePlaylistId', store.state.playlistId)
-                } else {
-                  error('播放失败 未知错误')
-                }
-              })
-          }
-        } else {
-          store.commit('updatePlaylist', props.playlist)
-          store.commit('updatePlaylistId', undefined)
-        }
-      }
+      store.commit('player/setPlaylist', props.allPlaylist)
+      store.commit('player/setIndex', rowIndex)
       setTimeout(() => {
-        store.commit('updatePaused', false)
-      }, 400);
-      store.commit('updateIndex', row.index)
+        toggle(false)
+      }, 1000);
     },
     style: ''
   }
-  if (condition(row.index)) {
+  if (condition(row.songData.id)) {
     options.style += style
   }
   return options
 }
+const onPlayButtonClick = () => {
+  store.commit('player/setPlaylist', props.allPlaylist)
+  store.commit('player/setIndex', 0)
+}
 watch(
-  () => props.playlist,
+  () => props.renderPlaylist,
+  () => {
+    updatePlaylistData()
+  }
+)
+watch(
+  () => store.state.player.playlist,
   () => {
     updatePlaylistData()
   }
@@ -276,7 +304,7 @@ watch(
         <n-space class="toolbox">
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-button type="primary" circle @click="event => emits('playButtonClick', event)">
+              <n-button type="primary" circle @click="onPlayButtonClick">
                 <template #icon>
                   <n-icon :size="25" :component="Play24Filled"></n-icon>
                 </template>
@@ -286,7 +314,7 @@ watch(
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-button quaternary circle>
+              <n-button quaternary circle @click="info('尚在开发')">
                 <template #icon>
                   <n-icon :size="25" :component="Share24Filled"></n-icon>
                 </template>
@@ -296,7 +324,7 @@ watch(
           </n-tooltip>
           <n-tooltip trigger="hover">
             <template #trigger>
-              <n-button quaternary circle>
+              <n-button quaternary circle @click="info('尚在开发')">
                 <template #icon>
                   <n-icon :size="25" :component="Star24Regular"></n-icon>
                 </template>
@@ -316,6 +344,7 @@ watch(
 .n-text {
   display: inline-block;
 }
+
 .toolbox {
   margin-bottom: 20px;
 }
