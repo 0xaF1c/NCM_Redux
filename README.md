@@ -20,8 +20,10 @@
 - 🎵 网易云账号登录 
 - 🎧 支持私人FM和每日推荐
 - 🌙/☀️ Light / Dark 模式切换 or 自动切换
+- 🎞️ 适配系统多媒体控制
 - 🖥️ 有electron桌面端 [NCM_Redux_Client](https://github.com/0xaF1c/NCM_Redux_Client)
 - 📱 移动端适配 (还没做)
+- 🧑‍💻 pwa适配 (还没做)
 
 
 #### 🌟1.0 更新
